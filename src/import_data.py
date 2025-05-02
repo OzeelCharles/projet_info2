@@ -23,6 +23,7 @@ def charger_donnees_depuis_bureau():
         return None
     
     # Charge chaque fichier CSV et crée une variable avec le nom du fichier
+    print("Pandas est importé sous le nom pd.")
     for fichier in fichiers_csv:
         nom_variable = fichier.stem  # nom du fichier sans extension
         try:
