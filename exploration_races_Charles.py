@@ -1,8 +1,5 @@
-#!/usr/bin/env python
+#Questions de Charles 
 # coding: utf-8
-
-# In[1]:
-
 
 import pandas as pd
 import numpy as np
@@ -13,20 +10,9 @@ from src import import_data as i_d
 from sklearn.linear_model import LinearRegression
 import scipy.stats as stats
 
-
-# In[2]:
-
+#Charges les données depuis le bureau#
 
 i_d.charger_donnees_depuis_bureau()
-
-
-# In[3]:
-
-
-pit_stops
-
-
-# In[4]:
 
 
 def time_to_decimal(time_str: str) -> float:
@@ -64,9 +50,6 @@ def time_to_decimal(time_str: str) -> float:
         raise ValueError("La chaîne d'entrée n'est pas au format attendu 'HH:MM:SS'.")
     h, m, s = map(int, time_str.split(":"))
     return h + m / 60 + s / 3600
-
-
-# In[6]:
 
 
 def horaire_moyen_run_f1(races: pd.DataFrame):
@@ -235,9 +218,6 @@ def horaire_moyen_run_f1(races: pd.DataFrame):
         plt.show()
 
 
-# In[8]:
-
-
 def min_max_pit_stop_drivers(
     nom_pilote: str,
     pit_stops: pd.DataFrame,
@@ -307,10 +287,6 @@ def min_max_pit_stop_drivers(
             drivers_mean_max_pit_stop["driverRef"] == nom_pilote
         ]
 
-
-# In[9]:
-
-
 def generer_table_fichier(nom_fichier_recherche):
     """
     Génère ligne par ligne le contenu d’un fichier texte situé dans un dossier spécifique sur le bureau.
@@ -356,9 +332,6 @@ def generer_table_fichier(nom_fichier_recherche):
                         yield ligne.strip()
 
 
-# In[10]:
-
-
 def nbr_victoire_joueurs():
     """
     Calcule le nombre total de victoires pour chaque pilote à partir du fichier 'driver_standings'.
@@ -399,9 +372,6 @@ def nbr_victoire_joueurs():
                 joueurs_points[keys] = int(victory)
         count += 1
     return joueurs_points
-
-
-# In[11]:
 
 
 def nbr_points_joueurs():
@@ -451,8 +421,6 @@ def nbr_points_joueurs():
     return joueurs_points
 
 
-# In[12]:
-
 
 def nom_joueurs():
     """
@@ -493,9 +461,6 @@ def nom_joueurs():
     return joueurs_nom
 
 
-# In[13]:
-
-
 def nbr_victoire_ttal_pilote():
     """
     Associe le nombre total de victoires à chaque pilote en utilisant leur nom lisible.
@@ -515,9 +480,6 @@ def nbr_victoire_ttal_pilote():
     score = nbr_victoire_joueurs()
     pilotes = nom_joueurs()
     return {pilotes[key]: score[key] for key in score if key in pilotes}
-
-
-# In[14]:
 
 
 def nbr_points_ttal_pilote():
@@ -542,9 +504,6 @@ def nbr_points_ttal_pilote():
     score = nbr_points_joueurs()
     pilotes = nom_joueurs()
     return {pilotes[key]: score[key] for key in score if key in pilotes}
-
-
-# In[15]:
 
 
 def classement_absolu_pilote(pilote: str) -> int:
@@ -604,9 +563,6 @@ def classement_absolu_pilote(pilote: str) -> int:
     return res
 
 
-# In[16]:
-
-
 def ttal_vict_pts_pilote(pilote: str) -> list:
     """
     Cette fonction retourne une liste contenant les statistiques de victoire et de points d'un pilote.
@@ -638,14 +594,8 @@ def ttal_vict_pts_pilote(pilote: str) -> list:
     return table[pilote]
 
 
-# In[17]:
-
-
 victory_ = list(nbr_victoire_ttal_pilote().values())
 points_ = list(nbr_points_ttal_pilote().values())
-
-
-# In[18]:
 
 
 def plot_relation_victoires_points(victory_, points_):
@@ -669,9 +619,6 @@ def plot_relation_victoires_points(victory_, points_):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
     plt.show()
-
-
-# In[19]:
 
 
 def regression_lineaire(victory_, points_):
