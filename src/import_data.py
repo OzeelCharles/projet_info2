@@ -3,7 +3,20 @@ import pandas as pd
 from pathlib import Path
 import builtins
 
+
 def charger_donnees_depuis_bureau():
+    """
+    Charge les fichiers CSV trouvés dans le dossier 'donnees_formule_un' situé sur le Bureau de l'utilisateur.
+
+    Cette fonction cherche tous les fichiers CSV dans le dossier 'donnees_formule_un' sur le Bureau,
+    et charge chaque fichier CSV dans une variable dont le nom est basé sur le nom du fichier (sans extension).
+    Les données sont chargées dans des DataFrames pandas et assignées à des variables dynamiques.
+
+    Si le dossier ou les fichiers CSV ne sont pas trouvés, la fonction renverra un message d'erreur.
+
+    Retour:
+        None: Si le dossier ou les fichiers CSV sont introuvables, ou si une erreur se produit lors du chargement.
+    """
     # Importe les chemins
     bureau = Path.home() / "Desktop"
     dossier_donnees = bureau / "donnees_formule_un"
@@ -14,14 +27,16 @@ def charger_donnees_depuis_bureau():
         print("Veuillez télécharger le dossier 'donnees_formule_un' sur votre Bureau.")
         return None
     print(f"Dossier trouvé : {dossier_donnees}")
-   
+
     # Cherche tous les fichiers CSV dans le dossier
     fichiers_csv = list(dossier_donnees.glob("*.csv"))
-    print(f"Fichiers CSV trouvés : {fichiers_csv}")  # Ajouter cette ligne pour vérifier les fichiers trouvés
+    print(
+        f"Fichiers CSV trouvés : {fichiers_csv}"
+    )  # Ajouter cette ligne pour vérifier les fichiers trouvés
     if not fichiers_csv:
         print("Aucun fichier CSV trouvé dans le dossier.")
         return None
-    
+
     # Charge chaque fichier CSV et crée une variable avec le nom du fichier
     print("Pandas est importé sous le nom pd.")
     for fichier in fichiers_csv:
