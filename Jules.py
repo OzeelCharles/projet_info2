@@ -1,18 +1,12 @@
-#!/usr/bin/env python
+# Questions de Jules
 # coding: utf-8
-
-# In[1]:
-
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 # # Fonctions Question 1
-
-# In[2]:
 
 
 def filtrer_vainqueurs(results: pd.DataFrame) -> pd.DataFrame:
@@ -30,9 +24,6 @@ def filtrer_vainqueurs(results: pd.DataFrame) -> pd.DataFrame:
         Résultats filtrés pour les vainqueurs.
     """
     return results[results["positionOrder"] == 1]
-
-
-# In[3]:
 
 
 def compter_victoires(
@@ -64,9 +55,6 @@ def compter_victoires(
     return top_winners
 
 
-# In[4]:
-
-
 def plot_victoires(top_winners: pd.DataFrame) -> None:
     """
     Affiche un graphique du nombre de victoires des pilotes sélectionnés.
@@ -90,9 +78,6 @@ def plot_victoires(top_winners: pd.DataFrame) -> None:
     plt.show()
 
 
-# In[5]:
-
-
 def stats_victoires(top_winners: pd.DataFrame) -> None:
     """
     Affiche les statistiques descriptives sur les victoires.
@@ -109,11 +94,6 @@ def stats_victoires(top_winners: pd.DataFrame) -> None:
     print(top_winners["wins"].describe())
     print("\nMédiane :", top_winners["wins"].median())
     print("Écart-type :", top_winners["wins"].std())
-
-
-# # Fonctions Question 1 sans pandas
-
-# In[6]:
 
 
 def lire_drivers_depuis_table(table: list[dict]) -> dict:
@@ -136,9 +116,6 @@ def lire_drivers_depuis_table(table: list[dict]) -> dict:
     return drivers
 
 
-# In[7]:
-
-
 def compter_victoires_depuis_table(table: list[dict]) -> dict:
     """
     Compte les victoires (positionOrder = 1) depuis une table déjà chargée.
@@ -159,9 +136,6 @@ def compter_victoires_depuis_table(table: list[dict]) -> dict:
             driver_id = str(row["driverId"])
             counts[driver_id] = counts.get(driver_id, 0) + 1
     return counts
-
-
-# In[8]:
 
 
 def filtrer_pilotes(victory_counts: dict, drivers: dict, seuil: int = 30) -> list:
@@ -192,8 +166,6 @@ def filtrer_pilotes(victory_counts: dict, drivers: dict, seuil: int = 30) -> lis
 
 # # Fonctions Question vitesse
 
-# In[9]:
-
 
 def compute_speed_per_year(results: pd.DataFrame, races: pd.DataFrame) -> pd.DataFrame:
     """
@@ -219,9 +191,6 @@ def compute_speed_per_year(results: pd.DataFrame, races: pd.DataFrame) -> pd.Dat
     merged["speed_kmh"] = 305 / merged["hours"]
     merged = merged[merged["speed_kmh"] <= 350]
     return merged.groupby("year")["speed_kmh"].mean().reset_index()
-
-
-# In[10]:
 
 
 def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
@@ -263,9 +232,6 @@ def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-
-
-# In[11]:
 
 
 def plot_speed_evolution_lowess(df_speed: pd.DataFrame, frac: float = 0.2) -> None:
