@@ -1,4 +1,4 @@
-#Question et Data-Mining de Charles OZEEL
+# Question et Data-Mining de Charles OZEEL
 # coding: utf-8
 
 import pandas as pd
@@ -579,6 +579,7 @@ def classement_absolu_pilote(pilote: str) -> int:
 
     return res
 
+
 def ttal_vict_pts_pilote(pilote: str) -> list:
     """
     Cette fonction retourne une liste contenant les statistiques de victoire et de points d'un pilote.
@@ -610,13 +611,8 @@ def ttal_vict_pts_pilote(pilote: str) -> list:
     return table[pilote]
 
 
-
-
 victory_ = list(nbr_victoire_ttal_pilote().values())
 points_ = list(nbr_points_ttal_pilote().values())
-
-
-
 
 
 def plot_relation_victoires_points(victory_: list, points_: list):
@@ -640,8 +636,6 @@ def plot_relation_victoires_points(victory_: list, points_: list):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
     plt.show()
-
-
 
 
 def regression_lineaire(victory_: list, points_: list):
@@ -715,4 +709,3 @@ def regression_lineaire(victory_: list, points_: list):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-
