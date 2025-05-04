@@ -1,26 +1,11 @@
-#!/usr/bin/env python
+#Question et Data-Mining de Charles OZEEL
 # coding: utf-8
-
-# In[1]:
-
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
-from src import import_data as i_d
-from sklearn.linear_model import LinearRegression
-import scipy.stats as stats
-
-
-# In[2]:
-
-
-i_d.charger_donnees_depuis_bureau()
-
-
-# In[4]:
 
 
 def time_to_decimal(time_str: str) -> float:
@@ -58,9 +43,6 @@ def time_to_decimal(time_str: str) -> float:
         raise ValueError("La chaîne d'entrée n'est pas au format attendu 'HH:MM:SS'.")
     h, m, s = map(int, time_str.split(":"))
     return h + m / 60 + s / 3600
-
-
-# In[5]:
 
 
 def horaire_moyen_run_f1(races: pd.DataFrame):
@@ -229,9 +211,6 @@ def horaire_moyen_run_f1(races: pd.DataFrame):
         plt.show()
 
 
-# In[8]:
-
-
 def min_max_pit_stop_drivers(
     nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame, param: str
 ):
@@ -326,9 +305,6 @@ def min_max_pit_stop_drivers(
         ]
 
 
-# In[7]:
-
-
 def generer_table_fichier(nom_fichier_recherche: str):
     """
     Génère ligne par ligne le contenu d’un fichier texte situé dans un dossier spécifique sur le bureau.
@@ -374,9 +350,6 @@ def generer_table_fichier(nom_fichier_recherche: str):
                         yield ligne.strip()
 
 
-# In[8]:
-
-
 def nbr_victoire_joueurs():
     """
     Calcule le nombre total de victoires pour chaque pilote à partir du fichier 'driver_standings'.
@@ -417,9 +390,6 @@ def nbr_victoire_joueurs():
                 joueurs_points[keys] = int(victory)
         count += 1
     return joueurs_points
-
-
-# In[9]:
 
 
 def nbr_points_joueurs():
@@ -469,9 +439,6 @@ def nbr_points_joueurs():
     return joueurs_points
 
 
-# In[10]:
-
-
 def nom_joueurs():
     """
     Calcule le nombre total de points accumulés par chaque pilote à partir du fichier 'driver_standings'.
@@ -511,9 +478,6 @@ def nom_joueurs():
     return joueurs_nom
 
 
-# In[11]:
-
-
 def nbr_victoire_ttal_pilote():
     """
     Associe le nombre total de victoires à chaque pilote en utilisant leur nom lisible.
@@ -533,9 +497,6 @@ def nbr_victoire_ttal_pilote():
     score = nbr_victoire_joueurs()
     pilotes = nom_joueurs()
     return {pilotes[key]: score[key] for key in score if key in pilotes}
-
-
-# In[12]:
 
 
 def nbr_points_ttal_pilote():
@@ -560,9 +521,6 @@ def nbr_points_ttal_pilote():
     score = nbr_points_joueurs()
     pilotes = nom_joueurs()
     return {pilotes[key]: score[key] for key in score if key in pilotes}
-
-
-# In[13]:
 
 
 def classement_absolu_pilote(pilote: str) -> int:
@@ -621,10 +579,6 @@ def classement_absolu_pilote(pilote: str) -> int:
 
     return res
 
-
-# In[14]:
-
-
 def ttal_vict_pts_pilote(pilote: str) -> list:
     """
     Cette fonction retourne une liste contenant les statistiques de victoire et de points d'un pilote.
@@ -656,14 +610,13 @@ def ttal_vict_pts_pilote(pilote: str) -> list:
     return table[pilote]
 
 
-# In[15]:
 
 
 victory_ = list(nbr_victoire_ttal_pilote().values())
 points_ = list(nbr_points_ttal_pilote().values())
 
 
-# In[16]:
+
 
 
 def plot_relation_victoires_points(victory_: list, points_: list):
@@ -689,7 +642,6 @@ def plot_relation_victoires_points(victory_: list, points_: list):
     plt.show()
 
 
-# In[9]:
 
 
 def regression_lineaire(victory_: list, points_: list):
@@ -764,5 +716,3 @@ def regression_lineaire(victory_: list, points_: list):
     plt.tight_layout()
     plt.show()
 
-
-# In[ ]:
