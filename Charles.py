@@ -1,5 +1,8 @@
-#Questions de Charles 
+#!/usr/bin/env python
 # coding: utf-8
+
+# In[1]:
+
 
 import pandas as pd
 import numpy as np
@@ -10,9 +13,14 @@ from src import import_data as i_d
 from sklearn.linear_model import LinearRegression
 import scipy.stats as stats
 
-#Charges les données depuis le bureau#
+
+# In[2]:
+
 
 i_d.charger_donnees_depuis_bureau()
+
+
+# In[4]:
 
 
 def time_to_decimal(time_str: str) -> float:
@@ -52,6 +60,9 @@ def time_to_decimal(time_str: str) -> float:
     return h + m / 60 + s / 3600
 
 
+# In[5]:
+
+
 def horaire_moyen_run_f1(races: pd.DataFrame):
     """
     Calcule et affiche les horaires moyens de départ des différentes sessions de la course
@@ -66,14 +77,14 @@ def horaire_moyen_run_f1(races: pd.DataFrame):
 
     Arguments:
          races : pd.DataFrame
-                 Un DataFrame contenant des informations 
+                 Un DataFrame contenant des informations
                  sur les courses de F1, avec les colonnes suivantes
                  au minimum :
                  - 'raceId', 'year', 'round', 'circuitId', 'name', 'date', 'time',
                  - 'fp1_date', 'fp1_time', 'fp2_date', 'fp2_time', 'fp3_date', 'fp3_time',
                  - 'quali_date', 'quali_time', 'sprint_date', 'sprint_time'.
-        
-                 Le DataFrame doit avoir des valeurs de type `datetime` pour 
+
+                 Le DataFrame doit avoir des valeurs de type `datetime` pour
                  les colonnes de date et des chaînes
                  de caractères de type 'HH:MM:SS' pour les colonnes de temps.
 
@@ -218,25 +229,25 @@ def horaire_moyen_run_f1(races: pd.DataFrame):
         plt.show()
 
 
+# In[8]:
+
+
 def min_max_pit_stop_drivers(
-    nom_pilote: str,
-    pit_stops: pd.DataFrame,
-    drivers: pd.DataFrame,
-    param: {"min", "max"},
+    nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame, param: str
 ):
     """
-    Retourne la moyenne des temps d'arrêt aux stands (pit stops) minimum ou maximum 
+    Retourne la moyenne des temps d'arrêt aux stands (pit stops) minimum ou maximum
     pour un pilote donné, calculée sur l'ensemble des courses qu'il a joué.
 
     Arguments:
          nom_pilote : str
-                      Identifiant du pilote 
+                      Identifiant du pilote
                       (champ `driverRef` dans le DataFrame `drivers`).
-    
+
          pit_stops : pd.DataFrame
-                     DataFrame contenant les informations sur les arrêts aux stands. 
+                     DataFrame contenant les informations sur les arrêts aux stands.
                      Doit inclure les colonnes : `raceId`, `driverId`, `milliseconds`.
-    
+
          drivers : pd.DataFrame
                    DataFrame contenant les informations sur les pilotes.
                    Doit inclure les colonnes : `driverId`, `driverRef`.
@@ -245,10 +256,10 @@ def min_max_pit_stop_drivers(
                  Spécifie le type de temps d'arrêt à retourner :
                  - 'min' : temps d'arrêt minimum moyen par course
                  - 'max' : temps d'arrêt maximum moyen par course
-        
+
          Sortie:
-             pd.DataFrame: Un DataFrame avec une seule ligne contenant la moyenne 
-                           des temps d'arrêt correspondants (min ou max) pour 
+             pd.DataFrame: Un DataFrame avec une seule ligne contenant la moyenne
+                           des temps d'arrêt correspondants (min ou max) pour
                            le pilote spécifié. La colonne retournée sera `min_pit_stop`
                            ou `max_pit_stop` selon la valeur de `param`.
 
@@ -256,8 +267,35 @@ def min_max_pit_stop_drivers(
     - Les temps d'arrêt sont convertis de millisecondes en secondes.
     - Seules les courses où des données valides existent pour le pilote sont prises en compte.
     """
+    # Ici on restreint les valeurs possibles de param#
+    if param not in {"min", "max"}:
+        raise ValueError(
+            f"{param} n'est pas dans" f' les valeurs acceptées {{"min", "max"}}'
+        )
+
+    # Ici on ajoute la condition que pit_stops doit posséder ces colonnes#
+    colonnes_stops = {"raceId", "driverId", "milliseconds"}
+    colonnes_drivers = {"driverId", "driverRef"}
+    if not all(col in pit_stops.columns for col in colonnes_stops):
+        raise ValueError(
+            f"La table pit_stops ne respecte pas les normes attendus,"
+            f" elle doit posséder les colonnes {colonnes_stops}."
+        )
+    if not all(col in drivers.columns for col in colonnes_drivers):
+        raise ValueError(
+            f"La table drivers ne respecte pas les normes attendus,"
+            f" elle doit posséder les colonnes {colonnes_drivers}."
+        )
     pit_stops = pit_stops.copy(deep=True)
-    pit_stops["duration"] = pit_stops["milliseconds"] * (10 ** -3)
+    # On renvoie une erreure si jamais la colonne "milliseconds"#
+    # n'est pas en float type ou pas convertible en float type#
+    if pit_stops["milliseconds"].dtype == object:
+        if pd.to_numeric(pit_stops["milliseconds"], errors="coerce").isna().all():
+            raise ValueError(
+                f"La colonne 'milliseconds' de la table pit_stops n'est pas formatable"
+                f"en valeurs numériques. Corrigez la table"
+            )
+    pit_stops["duration"] = pit_stops["milliseconds"] * (10**-3)
     pit_stop_min = (
         pit_stops.groupby(["raceId", "driverId"]).agg({"duration": "min"}).reset_index()
     )
@@ -287,7 +325,11 @@ def min_max_pit_stop_drivers(
             drivers_mean_max_pit_stop["driverRef"] == nom_pilote
         ]
 
-def generer_table_fichier(nom_fichier_recherche):
+
+# In[7]:
+
+
+def generer_table_fichier(nom_fichier_recherche: str):
     """
     Génère ligne par ligne le contenu d’un fichier texte situé dans un dossier spécifique sur le bureau.
 
@@ -296,7 +338,7 @@ def generer_table_fichier(nom_fichier_recherche):
 
     Argument:
           nom_fichier_recherche : str
-                                  Le nom du fichier (sans extension) à 
+                                  Le nom du fichier (sans extension) à
                                   rechercher dans le dossier.
 
     Yields
@@ -332,11 +374,14 @@ def generer_table_fichier(nom_fichier_recherche):
                         yield ligne.strip()
 
 
+# In[8]:
+
+
 def nbr_victoire_joueurs():
     """
     Calcule le nombre total de victoires pour chaque pilote à partir du fichier 'driver_standings'.
 
-    Le fichier est lu ligne par ligne à l'aide de la fonction `generer_table_fichier`.  
+    Le fichier est lu ligne par ligne à l'aide de la fonction `generer_table_fichier`.
     La fonction extrait le nom ou l'identifiant du pilote (clé) ainsi que le nombre de victoires associé
     à chaque ligne, puis cumule les victoires dans un dictionnaire.
 
@@ -372,6 +417,9 @@ def nbr_victoire_joueurs():
                 joueurs_points[keys] = int(victory)
         count += 1
     return joueurs_points
+
+
+# In[9]:
 
 
 def nbr_points_joueurs():
@@ -421,6 +469,8 @@ def nbr_points_joueurs():
     return joueurs_points
 
 
+# In[10]:
+
 
 def nom_joueurs():
     """
@@ -461,6 +511,9 @@ def nom_joueurs():
     return joueurs_nom
 
 
+# In[11]:
+
+
 def nbr_victoire_ttal_pilote():
     """
     Associe le nombre total de victoires à chaque pilote en utilisant leur nom lisible.
@@ -468,9 +521,9 @@ def nbr_victoire_ttal_pilote():
     Cette fonction croise deux sources :
     - `nbr_victoire_joueurs()` : fournit un dictionnaire {id_pilote: nb_victoires}
     - `nom_joueurs()` : fournit un dictionnaire {id_pilote: nom_pilote}
-    
+
     Sortie:
-        dict: Un dictionnaire avec les noms des pilotes 
+        dict: Un dictionnaire avec les noms des pilotes
               comme clés et leur nombre total de victoires comme valeurs.
 
     Remarques:
@@ -482,22 +535,25 @@ def nbr_victoire_ttal_pilote():
     return {pilotes[key]: score[key] for key in score if key in pilotes}
 
 
+# In[12]:
+
+
 def nbr_points_ttal_pilote():
     """
     Cette fonction récupère les scores des joueurs et les associe à leurs noms respectifs.
 
-    Elle utilise la fonction `nbr_points_joueurs()` pour obtenir les scores des joueurs 
-    et la fonction `nom_joueurs()` pour obtenir les noms des joueurs. Elle retourne 
-    un dictionnaire où les clés sont les noms des joueurs et les valeurs sont leurs 
+    Elle utilise la fonction `nbr_points_joueurs()` pour obtenir les scores des joueurs
+    et la fonction `nom_joueurs()` pour obtenir les noms des joueurs. Elle retourne
+    un dictionnaire où les clés sont les noms des joueurs et les valeurs sont leurs
     scores respectifs.
 
     Sortie:
-        dict: Un dictionnaire associant les noms des joueurs (tirés de `nom_joueurs()`) 
-              à leurs scores respectifs (tirés de `nbr_points_joueurs()`), mais seulement 
+        dict: Un dictionnaire associant les noms des joueurs (tirés de `nom_joueurs()`)
+              à leurs scores respectifs (tirés de `nbr_points_joueurs()`), mais seulement
               pour les joueurs dont le nom et le score existent dans les deux sources.
 
     Exemple:
-        Si `nom_joueurs()` retourne ['Alice', 'Bob', 'Charlie'] et `nbr_points_joueurs()` 
+        Si `nom_joueurs()` retourne ['Alice', 'Bob', 'Charlie'] et `nbr_points_joueurs()`
         retourne {0: 10, 1: 15, 2: 20}, la fonction renverra:
         {'Alice': 10, 'Bob': 15, 'Charlie': 20}
     """
@@ -506,18 +562,21 @@ def nbr_points_ttal_pilote():
     return {pilotes[key]: score[key] for key in score if key in pilotes}
 
 
+# In[13]:
+
+
 def classement_absolu_pilote(pilote: str) -> int:
     """
-    Cette fonction calcule et affiche le classement absolu d'un pilote en fonction de 
+    Cette fonction calcule et affiche le classement absolu d'un pilote en fonction de
     ses victoires et de son score total de points.
 
-    Elle vérifie si le pilote est bien référencé dans la liste des pilotes, puis utilise 
-    les fonctions `nbr_victoire_ttal_pilote()` et `nbr_points_ttal_pilote()` pour récupérer 
-    respectivement les victoires et les points totaux du pilote. Elle trie ensuite tous les pilotes 
-    en fonction de leurs victoires, puis génère un classement absolu, où les pilotes sont classés 
-    du plus grand au plus petit nombre de victoires. 
+    Elle vérifie si le pilote est bien référencé dans la liste des pilotes, puis utilise
+    les fonctions `nbr_victoire_ttal_pilote()` et `nbr_points_ttal_pilote()` pour récupérer
+    respectivement les victoires et les points totaux du pilote. Elle trie ensuite tous les pilotes
+    en fonction de leurs victoires, puis génère un classement absolu, où les pilotes sont classés
+    du plus grand au plus petit nombre de victoires.
 
-    Le classement du pilote donné en paramètre est affiché. Si le pilote n'a pas de victoires, 
+    Le classement du pilote donné en paramètre est affiché. Si le pilote n'a pas de victoires,
     un message spécifique indique qu'il n'a pas de classement.
 
     Arguments:
@@ -530,7 +589,7 @@ def classement_absolu_pilote(pilote: str) -> int:
         ValueError: Si le pilote spécifié n'est pas référencé dans la liste des pilotes.
 
     Exemple:
-        Si 'Alice' a 5 victoires et 120 points, et que son classement est le 1er dans 
+        Si 'Alice' a 5 victoires et 120 points, et que son classement est le 1er dans
         les victoires, la fonction affichera:
         "Le pilote 'Alice' est arrivé premier avec 5 victoires de course tout au long de sa carrière."
         "Il aura marqué au total 120 points."
@@ -563,12 +622,15 @@ def classement_absolu_pilote(pilote: str) -> int:
     return res
 
 
+# In[14]:
+
+
 def ttal_vict_pts_pilote(pilote: str) -> list:
     """
     Cette fonction retourne une liste contenant les statistiques de victoire et de points d'un pilote.
 
-    Elle utilise les fonctions `nbr_victoire_ttal_pilote()` et `nbr_points_ttal_pilote()` pour récupérer 
-    respectivement les victoires et les points totaux des pilotes. Si le pilote est référencé, la fonction 
+    Elle utilise les fonctions `nbr_victoire_ttal_pilote()` et `nbr_points_ttal_pilote()` pour récupérer
+    respectivement les victoires et les points totaux des pilotes. Si le pilote est référencé, la fonction
     retourne une liste contenant le nombre de victoires et le nombre de points pour ce pilote spécifique.
 
     Arguments:
@@ -594,11 +656,17 @@ def ttal_vict_pts_pilote(pilote: str) -> list:
     return table[pilote]
 
 
+# In[15]:
+
+
 victory_ = list(nbr_victoire_ttal_pilote().values())
 points_ = list(nbr_points_ttal_pilote().values())
 
 
-def plot_relation_victoires_points(victory_, points_):
+# In[16]:
+
+
+def plot_relation_victoires_points(victory_: list, points_: list):
     """
     Cette fonction génère un graphique de dispersion montrant la relation entre
     le nombre de victoires et le total de points en F1.
@@ -621,10 +689,13 @@ def plot_relation_victoires_points(victory_, points_):
     plt.show()
 
 
-def regression_lineaire(victory_, points_):
+# In[9]:
+
+
+def regression_lineaire(victory_: list, points_: list):
     """
     Cette fonction effectue une régression linéaire entre les données de victoires et de points.
-    Elle affiche plusieurs graphiques pour évaluer la qualité du modèle de régression, 
+    Elle affiche plusieurs graphiques pour évaluer la qualité du modèle de régression,
     ainsi que les statistiques associées.
 
     Arguments:
@@ -692,3 +763,6 @@ def regression_lineaire(victory_, points_):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+
+# In[ ]:
