@@ -7,12 +7,13 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
-def mappage_courses_sans_noms(circuits: pd.DataFrame):
+def mappage_courses_sans_noms(circuits: pd.DataFrame, display = False):
     """
     Affiche les circuits des courses de F1 sur une carte du monde (statique), sans les noms des circuits visibles.
     
     Paramètres :
     - circuits : DataFrame contenant les coordonnées des circuits ('lat', 'lng', 'name')
+    - display : True ou False, si True affiche les noms sur chaque point sinon par défaut ne le fait pas
     """
     import geopandas as gpd
     circuits = circuits.copy()
@@ -24,30 +25,11 @@ def mappage_courses_sans_noms(circuits: pd.DataFrame):
     fig, ax = plt.subplots(figsize=(15, 10))
     world.plot(ax=ax, color='lightgray', edgecolor='white')
     geo_df.plot(ax=ax, color='midnightblue', markersize=50)
+    if display:
+        for x, y, name in zip(geo_df.geometry.x, geo_df.geometry.y, geo_df['circuitRef']):
+            ax.text(x + 1, y + 0.5, name, fontsize=7, ha='left', va='bottom')
     plt.title("Circuits de F1 dans le monde", fontsize=16)
     plt.show()
-
-def mappage_courses_avec_noms(circuits: pd.DataFrame):
-    """
-    Affiche les circuits des courses de F1 sur une carte du monde (statique), avec les noms des circuits visibles.
-    
-    Paramètres :
-    - circuits : DataFrame contenant les coordonnées des circuits ('lat', 'lng', 'name')
-    """
-    circuits = circuits.copy()
-    circuits = circuits.drop_duplicates(subset=["circuitId"])
-    geo_df = gpd.GeoDataFrame(circuits,
-                               geometry=gpd.points_from_xy(circuits['lng'], circuits['lat']),
-                               crs="EPSG:4326")
-    world = gpd.read_file("naturalearth_lowres/naturalearth_lowres.shp")
-    fig, ax = plt.subplots(figsize=(15, 10))
-    world.plot(ax=ax, color='lightgray', edgecolor='white')
-    geo_df.plot(ax=ax, color='midnightblue', markersize=50)
-    for x, y, name in zip(geo_df.geometry.x, geo_df.geometry.y, geo_df['circuitRef']):
-        ax.text(x + 1, y + 0.5, name, fontsize=7, ha='left', va='bottom')
-    plt.title("Circuits de F1 dans le monde", fontsize=16)
-    plt.show()
-
 
 def min_max_pit_stop_drivers(
     nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame, param: str
