@@ -31,47 +31,37 @@ def mappage_courses_sans_noms(circuits: pd.DataFrame, display = False):
     plt.title("Circuits de F1 dans le monde", fontsize=16)
     plt.show()
 
-def min_max_pit_stop_drivers(
-    nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame, param: str
-):
+def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame):
     """
-    Retourne la moyenne des temps d'arrêt aux stands (pit stops) minimum ou maximum
-    pour un pilote donné, calculée sur l'ensemble des courses qu'il a joué.
+        Calcule les statistiques moyennes des durées d'arrêts aux stands (pit stops) 
+    pour un pilote donné à partir des données d'une tabel pit_stops et des drivers.
 
-    Arguments:
-         nom_pilote : str
-                      Identifiant du pilote
-                      (champ `driverRef` dans le DataFrame `drivers`).
+    Paramètres :
+    ------------
+    nom_pilote : str
+        Le nom de référence du pilote (`driverRef`) pour lequel on veut les statistiques.
+    pit_stops : pd.DataFrame
+        Un DataFrame contenant les informations sur les arrêts aux stands, avec les colonnes
+        requises : "raceId", "driverId", "milliseconds".
+    drivers : pd.DataFrame
+        Un DataFrame contenant les informations des pilotes, avec les colonnes requises :
+        "driverId", "driverRef".
 
-         pit_stops : pd.DataFrame
-                     DataFrame contenant les informations sur les arrêts aux stands.
-                     Doit inclure les colonnes : `raceId`, `driverId`, `milliseconds`.
+    Retour :
+    --------
+    pd.DataFrame
+        Un DataFrame contenant les moyennes suivantes pour le pilote sélectionné :
+        - driverRef : Nom du pilote renseigné en entrée
+        - duration_min : moyenne des durées minimales par course
+        - duration_max : moyenne des durées maximales par course
+        - duration_std : moyenne des écarts-types des durées par course
 
-         drivers : pd.DataFrame
-                   DataFrame contenant les informations sur les pilotes.
-                   Doit inclure les colonnes : `driverId`, `driverRef`.
-
-         param : {'min', 'max'}
-                 Spécifie le type de temps d'arrêt à retourner :
-                 - 'min' : temps d'arrêt minimum moyen par course
-                 - 'max' : temps d'arrêt maximum moyen par course
-
-         Sortie:
-             pd.DataFrame: Un DataFrame avec une seule ligne contenant la moyenne
-                           des temps d'arrêt correspondants (min ou max) pour
-                           le pilote spécifié. La colonne retournée sera `min_pit_stop`
-                           ou `max_pit_stop` selon la valeur de `param`.
-
-    Remarques:
-    - Les temps d'arrêt sont convertis de millisecondes en secondes.
-    - Seules les courses où des données valides existent pour le pilote sont prises en compte.
+    Lève :
+    ------
+    ValueError
+        Si les colonnes nécessaires sont absentes ou si les données ne sont pas convertibles
+        en valeurs numériques.
     """
-    # Ici on restreint les valeurs possibles de param#
-    if param not in {"min", "max"}:
-        raise ValueError(
-            f"{param} n'est pas dans" f' les valeurs acceptées {{"min", "max"}}'
-        )
-
     # Ici on ajoute la condition que pit_stops doit posséder ces colonnes#
     colonnes_stops = {"raceId", "driverId", "milliseconds"}
     colonnes_drivers = {"driverId", "driverRef"}
@@ -95,34 +85,16 @@ def min_max_pit_stop_drivers(
                 f"en valeurs numériques. Corrigez la table"
             )
     pit_stops["duration"] = pit_stops["milliseconds"] * (10**-3)
-    pit_stop_min = (
-        pit_stops.groupby(["raceId", "driverId"]).agg({"duration": "min"}).reset_index()
-    )
-    pit_stop_max = (
-        pit_stops.groupby(["raceId", "driverId"]).agg({"duration": "max"}).reset_index()
-    )
-    a = pd.merge(drivers, pit_stop_min, on="driverId", how="left")
-    a.rename(columns={"duration": "min_pit_stop"}, inplace=True)
-    a = pd.merge(a, pit_stop_max, on=["driverId", "raceId"], how="left")
-    a.rename(columns={"duration": "max_pit_stop"}, inplace=True)
-    a["min_pit_stop"] = a["min_pit_stop"].astype(float)
-    a["max_pit_stop"] = a["max_pit_stop"].astype(float)
-    a = a[~a["min_pit_stop"].isna()]
-    a = a[~a["max_pit_stop"].isna()]
-    drivers_mean_min_pit_stop = (
-        a.groupby("driverRef").agg({"min_pit_stop": "mean"}).reset_index()
-    )
-    drivers_mean_max_pit_stop = (
-        a.groupby("driverRef").agg({"max_pit_stop": "mean"}).reset_index()
-    )
-    if param == "min":
-        return drivers_mean_min_pit_stop[
-            drivers_mean_min_pit_stop["driverRef"] == nom_pilote
-        ]
-    else:
-        return drivers_mean_max_pit_stop[
-            drivers_mean_max_pit_stop["driverRef"] == nom_pilote
-        ]
+    pit_stops = pit_stops.groupby(["raceId", "driverId"]).agg(duration_min=("duration", "min"),
+                                                               duration_max=("duration", "max"),
+                                                               duration_std=("duration", "std")).reset_index()
+    pit_stops = pd.merge(drivers, pit_stops, on ="driverId", how ="right")
+    pit_stops = pit_stops.groupby("driverRef").agg({"duration_min": "mean",
+                                                  "duration_max": "mean",
+                                                  "duration_std": "mean"}).reset_index()
+    return pit_stops[pit_stops["driverRef"] == nom_pilote]
+
+
 
 
 def generer_table_fichier(nom_fichier_recherche: str):
@@ -191,26 +163,30 @@ def nbr_victoire_joueurs():
     joueurs_points = dict()
     begin = 0
     end = 0
-    for ligne in generer_table_fichier("driver_standings"):
+    for ligne in generer_table_fichier("results"):
         if count != 0:
             count_coma = 0
             for i in range(len(ligne)):
                 if ligne[i] == ",":
                     count_coma += 1
                     if count_coma == 2:
-                        begin = i
+                        begin_name = i
                     if count_coma == 3:
-                        end = i
-                        break
-            keys = ligne[begin + 1 : end]
-            victory = ligne[-1]
+                        end_name = i
+                    if count_coma == 8:
+                        begin_position = i
+                    if count_coma == 9:
+                        end_position = i
+                        break            
+            keys = ligne[begin_name + 1 : end_name]
+            #ici False + assure d'avoir une valeur numérique à la fin (1 ou 0)#
+            victory = False + (ligne[begin_position + 1 : end_position] == "1") 
             if keys in joueurs_points:
-                joueurs_points[keys] = joueurs_points[keys] + int(victory)
+                joueurs_points[keys] = joueurs_points[keys] + victory
             else:
-                joueurs_points[keys] = int(victory)
+                joueurs_points[keys] = victory
         count += 1
     return joueurs_points
-
 
 def nbr_points_joueurs():
     """
@@ -235,7 +211,7 @@ def nbr_points_joueurs():
     end_name = 0
     begin_points = 0
     end_points = 0
-    for ligne in generer_table_fichier("driver_standings"):
+    for ligne in generer_table_fichier("results"):
         if count != 0:
             count_coma = 0
             for i in range(len(ligne)):
@@ -245,8 +221,9 @@ def nbr_points_joueurs():
                         begin_name = i
                     if count_coma == 3:
                         end_name = i
+                    if count_coma == 9:
                         begin_points = i
-                    if count_coma == 4:
+                    if count_coma == 10:
                         end_points = i
                         break
             keys = ligne[begin_name + 1 : end_name]
@@ -429,10 +406,6 @@ def ttal_vict_pts_pilote(pilote: str) -> list:
         raise ValueError(f"{pilote} n'est pas un pilote référencé")
     table = {key: [victory[key], points[key]] for key in victory}
     return table[pilote]
-
-
-victory_ = list(nbr_victoire_ttal_pilote().values())
-points_ = list(nbr_points_ttal_pilote().values())
 
 
 def plot_relation_victoires_points(victory_: list, points_: list):
