@@ -7,208 +7,46 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 
-
-def time_to_decimal(time_str: str) -> float:
+def mappage_courses_sans_noms(circuits: pd.DataFrame):
     """
-    Convertit une durée au format 'HH:MM:SS' en heures sous forme décimale.
-
-    Cette fonction prend en entrée une chaîne de caractères représentant une durée
-    au format 'HH:MM:SS', où `HH` représente les heures, `MM` les minutes, et `SS` les secondes.
-    Elle retourne la durée totale en heures sous forme décimale.
-
-    Arguments:
-         time_str : str
-                    La chaîne de caractères représentant la durée, au format 'HH:MM:SS'.
-
-    Sortie:
-        float: La durée convertie en heures sous forme décimale.
-
-    Exceptions:
-        ValueError
-        Si la chaîne d'entrée n'est pas au format attendu 'HH:MM:SS'.
-
-    Exemples:
-        >>> time_to_decimal("2:30:45")
-        2.5125
-        >>> time_to_decimal("1:05:10")
-        1.0861
-
-    Remarques:
-    - Si l'argument `time_str` est `NaN`, la fonction retournera `NaN`.
-    - Cette fonction suppose que l'entrée est bien formatée sous la forme 'HH:MM:SS'.
-    """
-    if pd.isna(time_str):
-        return np.nan
-    if not map(int, time_str.split(":")):
-        raise ValueError("La chaîne d'entrée n'est pas au format attendu 'HH:MM:SS'.")
-    h, m, s = map(int, time_str.split(":"))
-    return h + m / 60 + s / 3600
-
-
-def horaire_moyen_run_f1(races: pd.DataFrame):
-    """
-    Calcule et affiche les horaires moyens de départ des différentes sessions de la course
-    pour chaque emplacement géographique des Grands Prix, en fonction des longitudes des circuits.
-
-    Cette fonction prend en entrée un DataFrame contenant des informations sur les courses de F1,
-    et effectue plusieurs étapes de transformation et de nettoyage des données, notamment :
-    - Vérification que les colonnes nécessaires sont présentes.
-    - Conversion des colonnes de date et de temps au bon format.
-    - Calcul des horaires moyens pour chaque longitude unique.
-    - Visualisation géographique des résultats sous forme de carte.
-
-    Arguments:
-         races : pd.DataFrame
-                 Un DataFrame contenant des informations
-                 sur les courses de F1, avec les colonnes suivantes
-                 au minimum :
-                 - 'raceId', 'year', 'round', 'circuitId', 'name', 'date', 'time',
-                 - 'fp1_date', 'fp1_time', 'fp2_date', 'fp2_time', 'fp3_date', 'fp3_time',
-                 - 'quali_date', 'quali_time', 'sprint_date', 'sprint_time'.
-
-                 Le DataFrame doit avoir des valeurs de type `datetime` pour
-                 les colonnes de date et des chaînes
-                 de caractères de type 'HH:MM:SS' pour les colonnes de temps.
-
-    Exceptions:
-       ValueError:
-              Si les colonnes nécessaires ne sont pas présentes dans le DataFrame `races`.
-              Si une des colonnes de dates ou de temps n'est pas au format attendu.
-              Si le fichier 'f1_grands_prix_locations.csv' n'est pas disponible.
-
-    Examples:
-         >>> horaire_moyen_run_f1(races_df)
-         Affiche une carte avec les horaires moyens pour chaque longitude des Grands Prix.
-
-    Remarques:
-    - La fonction utilise un fichier CSV externe ('f1_grands_prix_locations.csv') pour récupérer les
-      informations de longitude et latitude des circuits.
-    - La fonction effectue des conversions sur les colonnes de temps et de date en utilisant `pd.to_datetime`
-      et une fonction auxiliaire `time_to_decimal`.
-    - Si le format des colonnes n'est pas valide, une exception `ValueError` est levée.
-    - La visualisation géographique est générée à l'aide de GeoPandas et Matplotlib.
+    Affiche les circuits des courses de F1 sur une carte du monde (statique), sans les noms des circuits visibles.
+    
+    Paramètres :
+    - circuits : DataFrame contenant les coordonnées des circuits ('lat', 'lng', 'name')
     """
     import geopandas as gpd
-    import os
+    circuits = circuits.copy()
+    circuits = circuits.drop_duplicates(subset=["circuitId"])
+    geo_df = gpd.GeoDataFrame(circuits,
+                               geometry=gpd.points_from_xy(circuits['lng'], circuits['lat']),
+                               crs="EPSG:4326")
+    world = gpd.read_file("naturalearth_lowres/naturalearth_lowres.shp")
+    fig, ax = plt.subplots(figsize=(15, 10))
+    world.plot(ax=ax, color='lightgray', edgecolor='white')
+    geo_df.plot(ax=ax, color='midnightblue', markersize=50)
+    plt.title("Circuits de F1 dans le monde", fontsize=16)
+    plt.show()
 
-    # Conditions initiales. Il faut que la table en entrée possède ces colonnes#
-    if set(races.columns) in {
-        "raceId",
-        "year",
-        "round",
-        "circuitId",
-        "name",
-        "date",
-        "time",
-        "fp1_date",
-        "fp1_time",
-        "fp2_date",
-        "fp2_time",
-        "fp3_date",
-        "fp3_time",
-        "quali_date",
-        "quali_time",
-        "sprint_date",
-        "sprint_time",
-    }:
-        raise ValueError(
-            "la table ne reste pase les normes attendus."
-            "la table doit au moins contenir les colonnes"
-            "suivantes: [name',"
-            "'date',"
-            "'time',"
-            "'fp1_date',"
-            "'fp1_time',"
-            "'fp2_date',"
-            "'fp2_time',"
-            "'fp3_date',"
-            "'fp3_time',"
-            "'quali_date',"
-            "'quali_time',"
-            "'sprint_date',"
-            "'sprint_time']"
-        )
-    races = races.copy(deep=True)
-
-    date = ["date", "fp1_date", "fp2_date", "fp3_date", "quali_date", "sprint_date"]
-
-    time = ["time", "fp1_time", "fp2_time", "fp3_time", "quali_time", "sprint_time"]
-
-    # Ici on remplace les \\N, valeurs manquantes, par des NaN#
-    races.replace("\\N", np.nan, inplace=True)
-
-    for _ in date:
-        # Ici si la colonne n'est pas en date_time mais en str (donc convertible)#
-        if races[_].dtype == object:
-
-            # On vérifie alors qu'en cas de conversion, si jamais la conversion rend des NaN partout#
-            # Alors c'est que le format n'est pas respecté #
-            if pd.to_datetime(races[_], "coerce").isna().all():
-                raise ValueError(
-                    f"La colonne {_} n'est pas au bon format date time."
-                    " Il faut que ça soit sous la forme 'YYYY-MM-DD HH:MM:SS'."
-                )
-
-        races[_] = pd.to_datetime(races[_])
-
-    for _ in time:
-        # même chose qu'au dessus#
-        if races[_].dtype == object:
-            if races[_].apply(time_to_decimal, "coerce").isna().all():
-                raise ValueError(
-                    f"{_} n'est pas au bon format."
-                    "Elle doit être sous la forme 'HH:MM:SS'."
-                )
-
-        races[_] = races[_].apply(time_to_decimal)
-    # ici si la table loca est présente on l'importe. #
-    if not os.path.exists("f1_grands_prix_locations.csv"):
-        raise ValueError("Le fichier 'f1_grands_prix_locations.csv' n'est pas présent.")
-
-    loca = pd.read_csv("f1_grands_prix_locations.csv").copy(deep=True)
-
-    loca.rename(columns={"Grand Prix": "name"}, inplace=True)
-
-    races = pd.merge(races, loca, how="left")
-    Long = races.Longitude.unique()
-    # On s'assure de l'unicité des valeurs dans la table loca colonne Longitude#
-    avg = []
-    # Ici pour tout éléments dans dans les longitudes#
-    # on sélectionne les valeurs qui ont cette position#
-    # On calcul pour chaque sous table la moyenne de temps par course#
-    for l in Long:
-        a = races[races["Longitude"] == l]
-        avg_time_A = [a[_].mean() for _ in time]
-        avg.append(avg_time_A)
-
-    # Ici on place le point sur une map géo isssus de géopandas#
-    for j in range(len(avg[0])):
-        data = [avg[i][j] for i in range(len(avg))]
-        norm = mcolors.Normalize(
-            vmin=min(data), vmax=max(data)
-        )  # Normalisation des valeurs
-        cmap = plt.cm.plasma
-        shapefile_path = "naturalearth_lowres"
-        gdf = gpd.read_file(shapefile_path)
-        fig, ax = plt.subplots(figsize=(10, 8))
-        gdf.plot(ax=ax)
-        scatter = ax.scatter(
-            races["Longitude"].unique(),
-            races["Latitude"].unique(),
-            c=data,
-            cmap=cmap,
-            s=50,
-            marker="o",
-            edgecolor="k",
-        )
-        fig.colorbar(
-            cm.ScalarMappable(norm=norm, cmap=cmap),
-            ax=ax,
-            orientation="horizontal",
-            label="Moyenne des temps",
-        )
-        fig.suptitle(f"Horaire moyen de début de {time[j]}")
-        plt.show()
+def mappage_courses_avec_noms(circuits: pd.DataFrame):
+    """
+    Affiche les circuits des courses de F1 sur une carte du monde (statique), avec les noms des circuits visibles.
+    
+    Paramètres :
+    - circuits : DataFrame contenant les coordonnées des circuits ('lat', 'lng', 'name')
+    """
+    circuits = circuits.copy()
+    circuits = circuits.drop_duplicates(subset=["circuitId"])
+    geo_df = gpd.GeoDataFrame(circuits,
+                               geometry=gpd.points_from_xy(circuits['lng'], circuits['lat']),
+                               crs="EPSG:4326")
+    world = gpd.read_file("naturalearth_lowres/naturalearth_lowres.shp")
+    fig, ax = plt.subplots(figsize=(15, 10))
+    world.plot(ax=ax, color='lightgray', edgecolor='white')
+    geo_df.plot(ax=ax, color='midnightblue', markersize=50)
+    for x, y, name in zip(geo_df.geometry.x, geo_df.geometry.y, geo_df['circuitRef']):
+        ax.text(x + 1, y + 0.5, name, fontsize=7, ha='left', va='bottom')
+    plt.title("Circuits de F1 dans le monde", fontsize=16)
+    plt.show()
 
 
 def min_max_pit_stop_drivers(
