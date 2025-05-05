@@ -31,7 +31,7 @@ def mappage_courses_sans_noms(circuits: pd.DataFrame, display = False):
     plt.title("Circuits de F1 dans le monde", fontsize=16)
     plt.show()
 
-def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame):
+def table_stat_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
     """
         Calcule les statistiques moyennes des durées d'arrêts aux stands (pit stops) 
     pour un pilote donné à partir des données d'une tabel pit_stops et des drivers.
@@ -54,6 +54,7 @@ def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd
         - driverRef : Nom du pilote renseigné en entrée
         - duration_min : moyenne des durées minimales par course
         - duration_max : moyenne des durées maximales par course
+        - duration_mean : moyenne des durées moyenne par course
         - duration_std : moyenne des écarts-types des durées par course
 
     Lève :
@@ -87,13 +88,24 @@ def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd
     pit_stops["duration"] = pit_stops["milliseconds"] * (10**-3)
     pit_stops = pit_stops.groupby(["raceId", "driverId"]).agg(duration_min=("duration", "min"),
                                                                duration_max=("duration", "max"),
+                                                               duration_mean = ("duration", "mean"),
                                                                duration_std=("duration", "std")).reset_index()
     pit_stops = pd.merge(drivers, pit_stops, on ="driverId", how ="right")
     pit_stops = pit_stops.groupby("driverRef").agg({"duration_min": "mean",
                                                   "duration_max": "mean",
-                                                  "duration_std": "mean"}).reset_index()
-    return pit_stops[pit_stops["driverRef"] == nom_pilote]
+                                                  "duration_std": "mean", 
+                                                  "duration_mean": "mean"}).reset_index()
+    return pit_stops
 
+
+def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame):
+    pit_stop = table_stat_stop_drivers(pit_stops, drivers)
+    pit_stop_names = list(pit_stop["driverRef"])
+    if nom_pilote not in pit_stop_names:
+        raise ValueError(f"{nom_pilote} est incorrecte,"
+                         " ou il y a des valeurs manquantes "
+                         "liées au pilote recherché.")
+    return pit_stop[pit_stop["driverRef"] == nom_pilote]
 
 
 
