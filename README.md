@@ -6,17 +6,16 @@ Ce projet a pour objectif d'explorer et d’analyser diverses caractéristiques 
 
 Les analyses incluent notamment :
 
-- **Q1** : Étude des pilotes ayant disputé plus de 30 Grands Prix (avec et sans modules complémentaires)
-- **Q2** : Évolution de la vitesse moyenne des vainqueurs par décennie
-- **Q3** : Classement des 10 vitesses moyennes les plus élevées par année
-- **Q4** : Classement des pilotes pour la saison 2023
-- **Q5** : Identification du pilote et de l’écurie ayant le plus d’abandons
-- **Q6** : Régression linéaire entre le nombre de points et le classement final
-- **Q7** : Classement des écuries selon le nombre total de courses disputées
-- **Q9** : Classement des écuries ayant participé au plus grand nombre de saisons
-- **Q10** : Où se passe l'ensemble des courses sur Terre ? 
-- **Q11** : quelles est le classement du temps passé au stand par pilote ? (du plus rapide au plus long)
-- **Q12** : 
+- **Q1** : Comment se répartie les circuits de la formule 1 sur la terre ?
+- **Q2** : Comment comparer deux pilotes selons leurs résultats de courses ?
+- **Q3** : Comment se répartie le temps d'arrêt au stand des pilotes dont on possède les données ?
+- **Q4** : 
+- **Q5** : 
+- **Q6** : 
+- **Q7** : 
+- **Q9** : 
+- **Q10** : 
+
 
 Ce projet utilise principalement `pandas`, `numpy`, `matplotlib`, `scikit-learn` et `geopandas`, et s’exécute dans un environnement Jupyter Notebook ou VSCode.
 
@@ -52,11 +51,13 @@ L’objectif de ce projet est justement d’apporter de la clarté dans cet paga
 Listez les principales fonctionnalités du projet :
 - ✅ Importation des données à l'aide d'un fichier contenant l'ensemble des bases de données
 - ✅ Représentation graphique de différentes statistiques
-- ✅ Estimation du nombre de point par nombre de victoire
+- ✅ Estimation du nombre de points par nombre de victoire
+- ✅ Estimation du nombre de points par durée moyen au stand
 - ✅ statitique moyenne du temps passé au stand par joueur
 - ✅ Nombre de points sur toute la carrière du pilote 
 - ✅ Nombre de victoires sur toute la carrière du pilote
 - ✅ Visualisaiton sur une des positions des circuits de grand prix
+- ✅ taux de victoire total par pilote
 - ✅ 
 
 ---
