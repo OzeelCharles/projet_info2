@@ -110,7 +110,7 @@ pip install -r requirements.txt
 
 ## 👥 Auteurs
 
-- Charles OZEEL – interface GIT, Module Charles.py, README.md, Notebook_final.ipynb – [@Lachance#233020](https://github.com/OzeelCharles)
+- Charles OZEEL – interface GIT, Module Charles.py, README.md, Notebook_final.ipyn(introduction, Q1, Q2, Q3, reg linéaire entre win et points, pit_stop et points)– [@Lachance#233020](https://github.com/OzeelCharles)
 - Jules – – []()
 - Lilian - -[]()
 - Gabriel - -[]()
