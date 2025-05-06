@@ -108,9 +108,6 @@ C:\Users\nom_utilisateur\Desktop\projet_info2
 
 pip install -r requirements.txt
 
-# Lance l’application
-npm start     # ou autre commande
-
 ## 👥 Auteurs
 
 - Charles OZEEL – interface GIT, Module Charles.py, README.md, Notebook_final.ipynb – [@Lachance#233020](https://github.com/OzeelCharles)
