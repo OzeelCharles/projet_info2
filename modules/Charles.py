@@ -107,6 +107,16 @@ def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd
                          "liées au pilote recherché.")
     return pit_stop[pit_stop["driverRef"] == nom_pilote]
 
+#def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
+    """
+    """
+    pit_stops = pit_stops.copy(deep = True)
+    drivers = drivers.copy(deep = True)
+    res = pd.merge(pit_stops, drivers, on = "driverId")
+    stat_mean_stop_drivers(drivers["driverRef"], pit_stops, drivers)
+    
+
+
 
 
 def generer_table_fichier(nom_fichier_recherche: str):
@@ -140,10 +150,7 @@ def generer_table_fichier(nom_fichier_recherche: str):
     dossier = os.path.join(os.path.expanduser("~"), "Desktop", "donnees_formule_un")
     if not os.path.isdir(dossier):
         raise ValueError(
-            "Le fichier 'donnees_formule_un' est introuvable sur votre bureau."
-        )
-        print("Le dossier n'existe pas :", dossier)
-        return
+            "Le fichier 'donnees_formule_un' est introuvable sur votre bureau.")
     for nom_fichier in os.listdir(dossier):
         chemin_fichier = os.path.join(dossier, nom_fichier)
         if os.path.isfile(chemin_fichier):
@@ -154,7 +161,7 @@ def generer_table_fichier(nom_fichier_recherche: str):
                         yield ligne.strip()
 
 
-def nbr_victoire_joueurs():
+def nbr_victoire_joueurs_pure():
     """
     Calcule le nombre total de victoires pour chaque pilote à partir du fichier 'driver_standings'.
 
@@ -200,7 +207,7 @@ def nbr_victoire_joueurs():
         count += 1
     return joueurs_points
 
-def nbr_points_joueurs():
+def nbr_points_joueurs_pure():
     """
     Calcule le nombre total de points accumulés par chaque pilote à partir du fichier 'driver_standings'.
 
@@ -248,7 +255,7 @@ def nbr_points_joueurs():
     return joueurs_points
 
 
-def nom_joueurs():
+def nom_joueurs_pure():
     """
     Calcule le nombre total de points accumulés par chaque pilote à partir du fichier 'driver_standings'.
 
@@ -287,13 +294,13 @@ def nom_joueurs():
     return joueurs_nom
 
 
-def nbr_victoire_ttal_pilote():
+def nbr_victoire_ttal_pilote_pure():
     """
     Associe le nombre total de victoires à chaque pilote en utilisant leur nom lisible.
 
     Cette fonction croise deux sources :
-    - `nbr_victoire_joueurs()` : fournit un dictionnaire {id_pilote: nb_victoires}
-    - `nom_joueurs()` : fournit un dictionnaire {id_pilote: nom_pilote}
+    - `nbr_victoire_joueurs_pure()` : fournit un dictionnaire {id_pilote: nb_victoires}
+    - `nom_joueurs_pure()` : fournit un dictionnaire {id_pilote: nom_pilote}
 
     Sortie:
         dict: Un dictionnaire avec les noms des pilotes
@@ -303,36 +310,36 @@ def nbr_victoire_ttal_pilote():
     - Les identifiants de pilotes présents dans `score` mais absents de `pilotes` sont ignorés.
     - Si deux pilotes ont le même nom, seul l’identifiant dans `score` est pris en compte.
     """
-    score = nbr_victoire_joueurs()
-    pilotes = nom_joueurs()
+    score = nbr_victoire_joueurs_pure()
+    pilotes = nom_joueurs_pure()
     return {pilotes[key]: score[key] for key in score if key in pilotes}
 
 
-def nbr_points_ttal_pilote():
+def nbr_points_ttal_pilote_pure():
     """
     Cette fonction récupère les scores des joueurs et les associe à leurs noms respectifs.
 
-    Elle utilise la fonction `nbr_points_joueurs()` pour obtenir les scores des joueurs
-    et la fonction `nom_joueurs()` pour obtenir les noms des joueurs. Elle retourne
+    Elle utilise la fonction `nbr_points_joueurs_pure()` pour obtenir les scores des joueurs
+    et la fonction `nom_joueurs_pure()` pour obtenir les noms des joueurs. Elle retourne
     un dictionnaire où les clés sont les noms des joueurs et les valeurs sont leurs
     scores respectifs.
 
     Sortie:
-        dict: Un dictionnaire associant les noms des joueurs (tirés de `nom_joueurs()`)
-              à leurs scores respectifs (tirés de `nbr_points_joueurs()`), mais seulement
+        dict: Un dictionnaire associant les noms des joueurs (tirés de `nom_joueurs_pure()`)
+              à leurs scores respectifs (tirés de `nbr_points_joueurs_pure()`), mais seulement
               pour les joueurs dont le nom et le score existent dans les deux sources.
 
     Exemple:
-        Si `nom_joueurs()` retourne ['Alice', 'Bob', 'Charlie'] et `nbr_points_joueurs()`
+        Si `nom_joueur_pure()` retourne ['Alice', 'Bob', 'Charlie'] et `nbr_points_joueurs_pure()`
         retourne {0: 10, 1: 15, 2: 20}, la fonction renverra:
         {'Alice': 10, 'Bob': 15, 'Charlie': 20}
     """
-    score = nbr_points_joueurs()
-    pilotes = nom_joueurs()
+    score = nbr_points_joueurs_pure()
+    pilotes = nom_joueurs_pure()
     return {pilotes[key]: score[key] for key in score if key in pilotes}
 
 
-def classement_absolu_pilote(pilote: str) -> int:
+def classement_absolu_pilote_pure(pilote: str) -> int:
     """
     Cette fonction calcule et affiche le classement absolu d'un pilote en fonction de
     ses victoires et de son score total de points.
@@ -361,11 +368,11 @@ def classement_absolu_pilote(pilote: str) -> int:
         "Le pilote 'Alice' est arrivé premier avec 5 victoires de course tout au long de sa carrière."
         "Il aura marqué au total 120 points."
     """
-    drivers = nom_joueurs()
+    drivers = nom_joueurs_pure()
     if pilote not in drivers.values():
         raise ValueError(f"{pilote} n'est pas un pilote référencé")
-    score1 = nbr_victoire_ttal_pilote()
-    score2 = nbr_points_ttal_pilote()
+    score1 = nbr_victoire_ttal_pilote_pure()
+    score2 = nbr_points_ttal_pilote_pure()
     res = score1[pilote]
     classement = sorted(score1.items(), key=lambda x: x[1], reverse=True)
     resultat = {}
@@ -389,11 +396,11 @@ def classement_absolu_pilote(pilote: str) -> int:
     return res
 
 
-def ttal_vict_pts_pilote(pilote: str) -> list:
+def ttal_vict_pts_pilote_pure(pilote: str) -> list:
     """
     Cette fonction retourne une liste contenant les statistiques de victoire et de points d'un pilote.
 
-    Elle utilise les fonctions `nbr_victoire_ttal_pilote()` et `nbr_points_ttal_pilote()` pour récupérer
+    Elle utilise les fonctions `nbr_victoire_ttal_pilote_pure()` et `nbr_points_ttal_pilote_pure()` pour récupérer
     respectivement les victoires et les points totaux des pilotes. Si le pilote est référencé, la fonction
     retourne une liste contenant le nombre de victoires et le nombre de points pour ce pilote spécifique.
 
@@ -412,8 +419,8 @@ def ttal_vict_pts_pilote(pilote: str) -> list:
         Si 'Alice' a 5 victoires et 120 points, la fonction renverra :
         [5, 120]
     """
-    victory = nbr_victoire_ttal_pilote()
-    points = nbr_points_ttal_pilote()
+    victory = nbr_victoire_ttal_pilote_pure()
+    points = nbr_points_ttal_pilote_pure()
     if pilote not in victory.keys():
         raise ValueError(f"{pilote} n'est pas un pilote référencé")
     table = {key: [victory[key], points[key]] for key in victory}
