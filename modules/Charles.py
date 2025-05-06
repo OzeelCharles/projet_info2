@@ -1,37 +1,48 @@
-# Question et Data-Mining de Charles OZEEL
+# Fonctions pour les:
+# Q1: Où se place sur une map les grands prix ?
+# Q2: Comment récupérier et comparer les pilotes selons le nombre de point, de victoire et taux de victoire ?
+# Q3: Comment se répartie le temps au stand par pilote ?
+# Régression linéaire entre nombre de point et nombre de victoire.
 # coding: utf-8
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-def mappage_courses_sans_noms(circuits: pd.DataFrame, display = False):
+
+def mappage_courses_sans_noms(circuits: pd.DataFrame, display=False):
     """
     Affiche les circuits des courses de F1 sur une carte du monde (statique), sans les noms des circuits visibles.
-    
+
     Paramètres :
     - circuits : DataFrame contenant les coordonnées des circuits ('lat', 'lng', 'name')
     - display : True ou False, si True affiche les noms sur chaque point sinon par défaut ne le fait pas
     """
     import geopandas as gpd
+
     circuits = circuits.copy()
     circuits = circuits.drop_duplicates(subset=["circuitId"])
-    geo_df = gpd.GeoDataFrame(circuits,
-                               geometry=gpd.points_from_xy(circuits['lng'], circuits['lat']),
-                               crs="EPSG:4326")
+    geo_df = gpd.GeoDataFrame(
+        circuits,
+        geometry=gpd.points_from_xy(circuits["lng"], circuits["lat"]),
+        crs="EPSG:4326",
+    )
     world = gpd.read_file("naturalearth_lowres/naturalearth_lowres.shp")
     fig, ax = plt.subplots(figsize=(15, 10))
-    world.plot(ax=ax, color='lightgray', edgecolor='white')
-    geo_df.plot(ax=ax, color='midnightblue', markersize=50)
+    world.plot(ax=ax, color="lightgray", edgecolor="white")
+    geo_df.plot(ax=ax, color="midnightblue", markersize=50)
     if display:
-        for x, y, name in zip(geo_df.geometry.x, geo_df.geometry.y, geo_df['circuitRef']):
-            ax.text(x + 1, y + 0.5, name, fontsize=7, ha='left', va='bottom')
+        for x, y, name in zip(
+            geo_df.geometry.x, geo_df.geometry.y, geo_df["circuitRef"]
+        ):
+            ax.text(x + 1, y + 0.5, name, fontsize=7, ha="left", va="bottom")
     plt.title("Circuits de F1 dans le monde", fontsize=16)
     plt.show()
 
+
 def table_stat_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
     """
-        Calcule les statistiques moyennes des durées d'arrêts aux stands (pit stops) 
+        Calcule les statistiques moyennes des durées d'arrêts aux stands (pit stops)
     pour un pilote donné à partir des données d'une tabel pit_stops et des drivers.
 
     Paramètres :
@@ -84,26 +95,45 @@ def table_stat_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
                 f"en valeurs numériques. Corrigez la table"
             )
     pit_stops["duration"] = pit_stops["milliseconds"] * (10**-3)
-    pit_stops = pit_stops.groupby(["raceId", "driverId"]).agg(duration_min=("duration", "min"),
-                                                               duration_max=("duration", "max"),
-                                                               duration_mean = ("duration", "mean"),
-                                                               duration_std=("duration", "std")).reset_index()
-    pit_stops = pd.merge(drivers, pit_stops, on ="driverId", how ="right")
-    pit_stops = pit_stops.groupby("driverRef").agg({"duration_min": "mean",
-                                                  "duration_max": "mean",
-                                                  "duration_std": "mean", 
-                                                  "duration_mean": "mean"}).reset_index()
+    pit_stops = (
+        pit_stops.groupby(["raceId", "driverId"])
+        .agg(
+            duration_min=("duration", "min"),
+            duration_max=("duration", "max"),
+            duration_mean=("duration", "mean"),
+            duration_std=("duration", "std"),
+        )
+        .reset_index()
+    )
+    pit_stops = pd.merge(drivers, pit_stops, on="driverId", how="right")
+    pit_stops = (
+        pit_stops.groupby("driverRef")
+        .agg(
+            {
+                "duration_min": "mean",
+                "duration_max": "mean",
+                "duration_std": "mean",
+                "duration_mean": "mean",
+            }
+        )
+        .reset_index()
+    )
     return pit_stops
 
 
-def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame):
+def stat_mean_stop_drivers(
+    nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd.DataFrame
+):
     pit_stop = table_stat_stop_drivers(pit_stops, drivers)
     pit_stop_names = list(pit_stop["driverRef"])
     if nom_pilote not in pit_stop_names:
-        raise ValueError(f"{nom_pilote} est incorrecte,"
-                         " ou il y a des valeurs manquantes "
-                         "liées au pilote recherché.")
+        raise ValueError(
+            f"{nom_pilote} est incorrecte,"
+            " ou il y a des valeurs manquantes "
+            "liées au pilote recherché."
+        )
     return pit_stop[pit_stop["driverRef"] == nom_pilote]
+
 
 def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
     """
@@ -129,11 +159,13 @@ def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame)
         - 'duration_mean' : durée moyenne d'arrêt aux stands
     """
     data = table_stat_stop_drivers(pit_stops, drivers)
-    data = data.sort_values(by = "duration_mean")
+    data = data.sort_values(by="duration_mean")
     return data[["driverRef", "duration_mean"]]
 
 
-def plot_duration_mean_distribution(pit_stops: pd.DataFrame, drivers: pd.DataFrame, bins: int = 5):
+def plot_duration_mean_distribution(
+    pit_stops: pd.DataFrame, drivers: pd.DataFrame, bins: int = 5
+):
     """
     Affiche un histogramme en barres des fréquences par intervalle de durée moyenne d'arrêts aux stands,
     afin de visualiser une éventuelle allure de loi de Poisson.
@@ -147,17 +179,27 @@ def plot_duration_mean_distribution(pit_stops: pd.DataFrame, drivers: pd.DataFra
     bins : int
         Le nombre d'intervalles à créer pour regrouper les durées moyennes.
     """
-    df = classement_mean_stop_drivers(pit_stops, drivers)[["driverRef", "duration_mean"]]
-    df['interval'] = pd.cut(df['duration_mean'], bins=bins)
-    interval_counts = df['interval'].value_counts(normalize=True).sort_index()
+    df = classement_mean_stop_drivers(pit_stops, drivers)[
+        ["driverRef", "duration_mean"]
+    ]
+    df["interval"] = pd.cut(df["duration_mean"], bins=bins)
+    interval_counts = df["interval"].value_counts(normalize=True).sort_index()
     plt.figure(figsize=(12, 6))
-    plt.bar(interval_counts.index.astype(str), interval_counts.values, color='skyblue', edgecolor='black')
-    plt.title("Fréquences relatives par intervalle de durée moyenne des arrêts aux stands")
+    plt.bar(
+        interval_counts.index.astype(str),
+        interval_counts.values,
+        color="skyblue",
+        edgecolor="black",
+    )
+    plt.title(
+        "Fréquences relatives par intervalle de durée moyenne des arrêts aux stands"
+    )
     plt.xlabel("Intervalle de durée moyenne (ms)")
     plt.ylabel("Fréquence relative")
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
 
 def generer_table_fichier(nom_fichier_recherche: str):
     """
@@ -190,7 +232,8 @@ def generer_table_fichier(nom_fichier_recherche: str):
     dossier = os.path.join(os.path.expanduser("~"), "Desktop", "donnees_formule_un")
     if not os.path.isdir(dossier):
         raise ValueError(
-            "Le fichier 'donnees_formule_un' est introuvable sur votre bureau.")
+            "Le fichier 'donnees_formule_un' est introuvable sur votre bureau."
+        )
     for nom_fichier in os.listdir(dossier):
         chemin_fichier = os.path.join(dossier, nom_fichier)
         if os.path.isfile(chemin_fichier):
@@ -236,16 +279,17 @@ def nbr_victoire_joueurs_pure():
                         begin_position = i
                     if count_coma == 9:
                         end_position = i
-                        break            
+                        break
             keys = ligne[begin_name + 1 : end_name]
-            #ici False + assure d'avoir une valeur numérique à la fin (1 ou 0)#
-            victory = False + (ligne[begin_position + 1 : end_position] == "1") 
+            # ici False + assure d'avoir une valeur numérique à la fin (1 ou 0)#
+            victory = False + (ligne[begin_position + 1 : end_position] == "1")
             if keys in joueurs_points:
                 joueurs_points[keys] = joueurs_points[keys] + victory
             else:
                 joueurs_points[keys] = victory
         count += 1
     return joueurs_points
+
 
 def nbr_points_joueurs_pure():
     """
@@ -330,7 +374,7 @@ def nbr_courses_joueurs_pure():
                         end_name = i
                         break
             keys = ligne[begin_name + 1 : end_name]
-            race = ligne[begin_race +1 : end_race]
+            race = ligne[begin_race + 1 : end_race]
             if keys in joueurs_points:
                 joueurs_points[keys] = joueurs_points[keys] + [race]
             else:
@@ -439,6 +483,7 @@ def nbr_points_ttal_pilote_pure():
     pilotes = nom_joueurs_pure()
     return {pilotes[key]: score[key] for key in score}
 
+
 def rate_victoire_absolu_pilote_pure():
     """
        Calcule le taux de victoire absolu de chaque pilote, c'est-à-dire le ratio du nombre de victoires
@@ -459,10 +504,11 @@ def rate_victoire_absolu_pilote_pure():
     """
     course = nbr_course_ttal_pilote_pure()
     victory = nbr_victoire_ttal_pilote_pure()
-    return { key : round(victory[key]/course[key],3)for key in course}
+    return {key: round(victory[key] / course[key], 3) for key in course}
+
 
 def ttal_vict_pts_pilote_table():
-  """
+    """
     Calcule et retourne une table des statistiques de performance pour chaque pilote.
 
     Cette fonction utilise les résultats de plusieurs fonctions pour générer une table avec les statistiques
@@ -488,21 +534,21 @@ def ttal_vict_pts_pilote_table():
         - Nombre de courses disputées (int)
         - Taux de victoire (float, arrondi à 3 décimales)
     """
-  victory = nbr_victoire_ttal_pilote_pure()
-  points = nbr_points_ttal_pilote_pure()
-  course = nbr_course_ttal_pilote_pure()
-  score = rate_victoire_absolu_pilote_pure()
-  table = {key: [victory[key],
-                   points[key],
-                   course[key],
-                   score[key]] for key in victory}
-  return table
+    victory = nbr_victoire_ttal_pilote_pure()
+    points = nbr_points_ttal_pilote_pure()
+    course = nbr_course_ttal_pilote_pure()
+    score = rate_victoire_absolu_pilote_pure()
+    table = {
+        key: [victory[key], points[key], course[key], score[key]] for key in victory
+    }
+    return table
+
 
 def ttal_vict_pts_pilote_pure(pilote: str):
     """
        Retourne les statistiques complètes d'un pilote donné sous forme de liste.
 
-    La fonction extrait les statistiques du pilote en utilisant la fonction `ttal_vict_pts_pilote_table()`, 
+    La fonction extrait les statistiques du pilote en utilisant la fonction `ttal_vict_pts_pilote_table()`,
     qui calcule le nombre de victoires, de points, le nombre de courses et le taux de victoire pour tous les pilotes.
     Elle vérifie ensuite si le pilote spécifié existe dans la table. Si le pilote est présent, elle retourne les statistiques,
     sinon elle lève une exception `ValueError`.
@@ -532,9 +578,12 @@ def ttal_vict_pts_pilote_pure(pilote: str):
     return table[pilote]
 
 
-#On refait cette fonction mais cette fois avec pandas#
+# On refait cette fonction mais cette fois avec pandas#
 
-def ttal_vict_pts_pilote(pilote: str, results: pd.DataFrame, drivers: pd.DataFrame)-> list:
+
+def ttal_vict_pts_pilote(
+    pilote: str, results: pd.DataFrame, drivers: pd.DataFrame
+) -> list:
     """
     Calcule les statistiques de performance d'un pilote de Formule 1 donné : total de points,
     nombre de victoires, nombre de courses disputées, et taux de victoire.
@@ -558,11 +607,15 @@ def ttal_vict_pts_pilote(pilote: str, results: pd.DataFrame, drivers: pd.DataFra
         - Nombre de courses disputées (int)
         - Taux de victoire arrondi à 3 décimales (float)
     """
-    data = pd.merge(results, drivers, on="driverId", how = "right")
-    data["win"] = data['positionText'].apply(lambda x: 1 if x =="1" else 0)
+    data = pd.merge(results, drivers, on="driverId", how="right")
+    data["win"] = data["positionText"].apply(lambda x: 1 if x == "1" else 0)
     data["nbr_course"] = data.groupby("driverRef").agg({"raceId": "count"})
-    res = data.groupby("driverRef").agg({"points": "sum", 'win': "sum","raceId": "count"}).reset_index()
-    res["victory_rate"] = round(res["win"]/res["raceId"],3)
+    res = (
+        data.groupby("driverRef")
+        .agg({"points": "sum", "win": "sum", "raceId": "count"})
+        .reset_index()
+    )
+    res["victory_rate"] = round(res["win"] / res["raceId"], 3)
     res = res[res["driverRef"] == pilote]
     return res.iloc[0].tolist()[1:]
 
@@ -588,6 +641,7 @@ def plot_relation_victoires_points(victory_: list, points_: list):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
     plt.show()
+
 
 def regression_lineaire(victory_: list, points_: list):
     """
