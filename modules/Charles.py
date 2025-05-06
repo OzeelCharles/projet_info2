@@ -4,8 +4,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
 
 def mappage_courses_sans_noms(circuits: pd.DataFrame, display = False):
     """
@@ -134,6 +132,32 @@ def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame)
     data = data.sort_values(by = "duration_mean")
     return data[["driverRef", "duration_mean"]]
 
+
+def plot_duration_mean_distribution(pit_stops: pd.DataFrame, drivers: pd.DataFrame, bins: int = 5):
+    """
+    Affiche un histogramme en barres des fréquences par intervalle de durée moyenne d'arrêts aux stands,
+    afin de visualiser une éventuelle allure de loi de Poisson.
+
+    Paramètres
+    ----------
+    pit_stops : pd.DataFrame
+        Le DataFrame contenant les informations sur les arrêts aux stands.
+    drivers : pd.DataFrame
+        Le DataFrame contenant les informations sur les pilotes.
+    bins : int
+        Le nombre d'intervalles à créer pour regrouper les durées moyennes.
+    """
+    df = classement_mean_stop_drivers(pit_stops, drivers)[["driverRef", "duration_mean"]]
+    df['interval'] = pd.cut(df['duration_mean'], bins=bins)
+    interval_counts = df['interval'].value_counts(normalize=True).sort_index()
+    plt.figure(figsize=(12, 6))
+    plt.bar(interval_counts.index.astype(str), interval_counts.values, color='skyblue', edgecolor='black')
+    plt.title("Fréquences relatives par intervalle de durée moyenne des arrêts aux stands")
+    plt.xlabel("Intervalle de durée moyenne (ms)")
+    plt.ylabel("Fréquence relative")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
 
 def generer_table_fichier(nom_fichier_recherche: str):
     """
@@ -271,22 +295,64 @@ def nbr_points_joueurs_pure():
     return joueurs_points
 
 
+def nbr_courses_joueurs_pure():
+    """
+     Calcule le nombre total de courses disputées par chaque pilote à partir du fichier 'results'.
+
+    La fonction lit ligne par ligne un fichier brut (type CSV), extrait les identifiants des pilotes
+    et les identifiants de course, puis compte combien de fois chaque pilote apparaît (c'est-à-dire
+    combien de courses il a disputées).
+
+    Retour
+    ------
+    dict
+        Un dictionnaire où chaque clé est l'identifiant d'un pilote (str), et chaque valeur est
+        le nombre total de courses qu'il a disputées (int).
+    """
+    count = 0
+    joueurs_points = dict()
+    begin_name = 0
+    end_name = 0
+    begin_race = 0
+    end_race = 0
+    for ligne in generer_table_fichier("results"):
+        if count != 0:
+            count_coma = 0
+            for i in range(len(ligne)):
+                if ligne[i] == ",":
+                    count_coma += 1
+                    if count_coma == 1:
+                        begin_race = i
+                    if count_coma == 2:
+                        end_race = i
+                        begin_name = i
+                    if count_coma == 3:
+                        end_name = i
+                        break
+            keys = ligne[begin_name + 1 : end_name]
+            race = ligne[begin_race +1 : end_race]
+            if keys in joueurs_points:
+                joueurs_points[keys] = joueurs_points[keys] + [race]
+            else:
+                joueurs_points[keys] = [race]
+        count += 1
+    for keys in joueurs_points.keys():
+        joueurs_points[keys] = len(joueurs_points[keys])
+    return joueurs_points
+
+
 def nom_joueurs_pure():
     """
-    Calcule le nombre total de points accumulés par chaque pilote à partir du fichier 'driver_standings'.
+    Extrait un dictionnaire des identifiants des pilotes associés à leurs noms à partir du fichier 'drivers'.
 
-    Le fichier est lu ligne par ligne à l’aide de la fonction `generer_table_fichier`.
-    La fonction extrait l'identifiant du pilote (champ 3) et le nombre de points (champ 4) de chaque ligne,
-    puis additionne les points pour chaque pilote dans un dictionnaire.
+    La fonction parcourt ligne par ligne un fichier brut (probablement CSV sans en-tête explicite au bon format),
+    et extrait, pour chaque ligne sauf la première, l'identifiant (`driverId`) et le nom (`driverRef`) ou nom court
+    du pilote. Elle utilise des indices de virgule pour découper manuellement chaque ligne.
 
-    Sortie:
-        dict: Un dictionnaire dont les clés sont les identifiants des pilotes,
-              et les valeurs sont le total de leurs points (float).
-
-    Remarques:
-    - Ignore la première ligne (header).
-    - Suppose que chaque ligne contient au moins 5 champs séparés par des virgules.
-    - Le 3e champ est l'identifiant du pilote, le 4e champ correspond aux points gagnés.
+    Retour
+    ------
+    dict
+        Un dictionnaire où chaque clé est un identifiant de pilote (str) et chaque valeur est le nom ou identifiant texte du pilote (str).
     """
     count = 0
     joueurs_nom = dict()
@@ -328,7 +394,26 @@ def nbr_victoire_ttal_pilote_pure():
     """
     score = nbr_victoire_joueurs_pure()
     pilotes = nom_joueurs_pure()
-    return {pilotes[key]: score[key] for key in score if key in pilotes}
+    return {pilotes[key]: score[key] for key in score}
+
+
+def nbr_course_ttal_pilote_pure():
+    """
+    Retourne un dictionnaire associant chaque pilote à son nombre total de courses disputées.
+
+    Cette fonction combine les résultats de deux fonctions :
+    - `nbr_courses_joueurs_pure()` : fournit un dictionnaire avec le nombre de courses par identifiant pilote.
+    - `nom_joueurs_pure()` : fournit un dictionnaire de correspondance entre identifiants pilotes et noms.
+
+    Retour
+    ------
+    dict
+        Un dictionnaire où chaque clé est le nom d’un pilote (str), et chaque valeur est le nombre de
+        courses qu’il a disputées (int).
+    """
+    course = nbr_courses_joueurs_pure()
+    pilotes = nom_joueurs_pure()
+    return {pilotes[key]: course[key] for key in course}
 
 
 def nbr_points_ttal_pilote_pure():
@@ -352,95 +437,134 @@ def nbr_points_ttal_pilote_pure():
     """
     score = nbr_points_joueurs_pure()
     pilotes = nom_joueurs_pure()
-    return {pilotes[key]: score[key] for key in score if key in pilotes}
+    return {pilotes[key]: score[key] for key in score}
 
-
-def classement_absolu_pilote_pure(pilote: str) -> int:
+def rate_victoire_absolu_pilote_pure():
     """
-    Cette fonction calcule et affiche le classement absolu d'un pilote en fonction de
-    ses victoires et de son score total de points.
+       Calcule le taux de victoire absolu de chaque pilote, c'est-à-dire le ratio du nombre de victoires
+    sur le nombre total de courses disputées.
 
-    Elle vérifie si le pilote est bien référencé dans la liste des pilotes, puis utilise
-    les fonctions `nbr_victoire_ttal_pilote()` et `nbr_points_ttal_pilote()` pour récupérer
-    respectivement les victoires et les points totaux du pilote. Elle trie ensuite tous les pilotes
-    en fonction de leurs victoires, puis génère un classement absolu, où les pilotes sont classés
-    du plus grand au plus petit nombre de victoires.
+    Cette fonction utilise les résultats de deux fonctions :
+    - `nbr_course_ttal_pilote_pure()` : fournit un dictionnaire avec le nombre total de courses disputées par pilote.
+    - `nbr_victoire_ttal_pilote_pure()` : fournit un dictionnaire avec le nombre total de victoires par pilote.
 
-    Le classement du pilote donné en paramètre est affiché. Si le pilote n'a pas de victoires,
-    un message spécifique indique qu'il n'a pas de classement.
+    Le taux de victoire est calculé pour chaque pilote comme suit :
+    - Taux de victoire = Nombre de victoires / Nombre total de courses
 
-    Arguments:
-        pilote (str): Le nom du pilote dont on souhaite connaître le classement.
-
-    Sortie:
-        int: Le nombre de victoires du pilote dans le classement absolu.
-
-    Exceptions:
-        ValueError: Si le pilote spécifié n'est pas référencé dans la liste des pilotes.
-
-    Exemple:
-        Si 'Alice' a 5 victoires et 120 points, et que son classement est le 1er dans
-        les victoires, la fonction affichera:
-        "Le pilote 'Alice' est arrivé premier avec 5 victoires de course tout au long de sa carrière."
-        "Il aura marqué au total 120 points."
+    Retour
+    ------
+    dict
+        Un dictionnaire où chaque clé est l'identifiant d'un pilote (str), et chaque valeur est son taux de victoire
+        arrondi à trois décimales (float).
     """
-    drivers = nom_joueurs_pure()
-    if pilote not in drivers.values():
-        raise ValueError(f"{pilote} n'est pas un pilote référencé")
-    score1 = nbr_victoire_ttal_pilote_pure()
-    score2 = nbr_points_ttal_pilote_pure()
-    res = score1[pilote]
-    classement = sorted(score1.items(), key=lambda x: x[1], reverse=True)
-    resultat = {}
-    for i in range(len(classement)):
-        resultat[classement[i][0]] = i + 1
-    if res != 0:
-        print(
-            f"Le pilote '{pilote}' est arrivé premier "
-            f"avec {res} victoires de course "
-            "tout au long de sa carrière."
-            f"Il aura marqué au total {score2[pilote]}"
-        )
-    else:
-        print(
-            f"Le pilote {pilote} n'a pas de classement "
-            "car il n'a aucune victoire de course sur "
-            "toute sa carrière."
-            f" Il aura marqué au total {score2[pilote]} points."
-        )
-
-    return res
-
-
-def ttal_vict_pts_pilote_pure(pilote: str) -> list:
-    """
-    Cette fonction retourne une liste contenant les statistiques de victoire et de points d'un pilote.
-
-    Elle utilise les fonctions `nbr_victoire_ttal_pilote_pure()` et `nbr_points_ttal_pilote_pure()` pour récupérer
-    respectivement les victoires et les points totaux des pilotes. Si le pilote est référencé, la fonction
-    retourne une liste contenant le nombre de victoires et le nombre de points pour ce pilote spécifique.
-
-    Arguments:
-        pilote (str): Le nom du pilote dont on souhaite connaître les statistiques.
-
-    Sorties:
-        list: Une liste contenant deux éléments :
-              - Le nombre de victoires du pilote.
-              - Le nombre de points du pilote.
-
-    Exceptions:
-        ValueError: Si le pilote spécifié n'est pas référencé dans les listes de victoires et de points.
-
-    Exemple:
-        Si 'Alice' a 5 victoires et 120 points, la fonction renverra :
-        [5, 120]
-    """
+    course = nbr_course_ttal_pilote_pure()
     victory = nbr_victoire_ttal_pilote_pure()
-    points = nbr_points_ttal_pilote_pure()
-    if pilote not in victory.keys():
+    return { key : round(victory[key]/course[key],3)for key in course}
+
+def ttal_vict_pts_pilote_table():
+  """
+    Calcule et retourne une table des statistiques de performance pour chaque pilote.
+
+    Cette fonction utilise les résultats de plusieurs fonctions pour générer une table avec les statistiques
+    suivantes pour chaque pilote :
+    - Nombre total de victoires
+    - Nombre total de points
+    - Nombre total de courses disputées
+    - Taux de victoire (rapport entre victoires et courses disputées)
+
+    Les fonctions utilisées sont les suivantes :
+    - `nbr_victoire_ttal_pilote_pure()` : nombre total de victoires par pilote.
+    - `nbr_points_ttal_pilote_pure()` : nombre total de points par pilote.
+    - `nbr_course_ttal_pilote_pure()` : nombre total de courses disputées par pilote.
+    - `rate_victoire_absolu_pilote_pure()` : taux de victoire par pilote.
+
+    Retour
+    ------
+    dict
+        Un dictionnaire où chaque clé est l'identifiant d'un pilote (str), et chaque valeur est une liste de statistiques
+        [victoires, points, courses, taux de victoire] pour ce pilote. Ces statistiques sont dans l'ordre suivant :
+        - Nombre de victoires (int)
+        - Nombre de points (int)
+        - Nombre de courses disputées (int)
+        - Taux de victoire (float, arrondi à 3 décimales)
+    """
+  victory = nbr_victoire_ttal_pilote_pure()
+  points = nbr_points_ttal_pilote_pure()
+  course = nbr_course_ttal_pilote_pure()
+  score = rate_victoire_absolu_pilote_pure()
+  table = {key: [victory[key],
+                   points[key],
+                   course[key],
+                   score[key]] for key in victory}
+  return table
+
+def ttal_vict_pts_pilote_pure(pilote: str):
+    """
+       Retourne les statistiques complètes d'un pilote donné sous forme de liste.
+
+    La fonction extrait les statistiques du pilote en utilisant la fonction `ttal_vict_pts_pilote_table()`, 
+    qui calcule le nombre de victoires, de points, le nombre de courses et le taux de victoire pour tous les pilotes.
+    Elle vérifie ensuite si le pilote spécifié existe dans la table. Si le pilote est présent, elle retourne les statistiques,
+    sinon elle lève une exception `ValueError`.
+
+    Paramètres
+    ----------
+    pilote : str
+        L'identifiant du pilote (par exemple, "Hamilton") pour lequel les statistiques doivent être retournées.
+
+    Retour
+    ------
+    list
+        Une liste contenant les statistiques du pilote spécifié dans l'ordre suivant :
+        - Nombre de victoires (int)
+        - Nombre de points (int)
+        - Nombre de courses disputées (int)
+        - Taux de victoire (float, arrondi à 3 décimales)
+
+    Exceptions
+    ----------
+    ValueError
+        Si le pilote spécifié n'est pas trouvé dans les données.
+    """
+    table = ttal_vict_pts_pilote_table()
+    if pilote not in table.keys():
         raise ValueError(f"{pilote} n'est pas un pilote référencé")
-    table = {key: [victory[key], points[key]] for key in victory}
     return table[pilote]
+
+
+#On refait cette fonction mais cette fois avec pandas#
+
+def ttal_vict_pts_pilote(pilote: str, results: pd.DataFrame, drivers: pd.DataFrame)-> list:
+    """
+    Calcule les statistiques de performance d'un pilote de Formule 1 donné : total de points,
+    nombre de victoires, nombre de courses disputées, et taux de victoire.
+
+    Paramètres
+    ----------
+    pilote : str
+        Identifiant du pilote (driverRef) pour lequel on souhaite extraire les statistiques.
+    results : pd.DataFrame
+        DataFrame contenant les résultats des courses (doit inclure les colonnes 'driverId',
+        'raceId', 'positionText', et 'points').
+    drivers : pd.DataFrame
+        DataFrame contenant les informations sur les pilotes (doit inclure 'driverId' et 'driverRef').
+
+    Retour
+    ------
+    list
+        Liste contenant les statistiques du pilote, dans l'ordre suivant :
+        - Total des points (float)
+        - Nombre de victoires (int)
+        - Nombre de courses disputées (int)
+        - Taux de victoire arrondi à 3 décimales (float)
+    """
+    data = pd.merge(results, drivers, on="driverId", how = "right")
+    data["win"] = data['positionText'].apply(lambda x: 1 if x =="1" else 0)
+    data["nbr_course"] = data.groupby("driverRef").agg({"raceId": "count"})
+    res = data.groupby("driverRef").agg({"points": "sum", 'win': "sum","raceId": "count"}).reset_index()
+    res["victory_rate"] = round(res["win"]/res["raceId"],3)
+    res = res[res["driverRef"] == pilote]
+    return res.iloc[0].tolist()[1:]
 
 
 def plot_relation_victoires_points(victory_: list, points_: list):
@@ -464,7 +588,6 @@ def plot_relation_victoires_points(victory_: list, points_: list):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
     plt.show()
-
 
 def regression_lineaire(victory_: list, points_: list):
     """
