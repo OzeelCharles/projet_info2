@@ -4,7 +4,7 @@
 
 import pandas as pd
 import pytest
-from modules.Charles import ttal_vict_pts_table, ttal_vict_pts_pilote
+from Charles import ttal_vict_pts_table, ttal_vict_pts_pilote
 
 @pytest.mark.parametrize(
     "results, drivers, expected",
@@ -29,8 +29,8 @@ from modules.Charles import ttal_vict_pts_table, ttal_vict_pts_pilote
 )
 def test_ttal_vict_pts_table(results, drivers, expected):
     result_df = ttal_vict_pts_table(results, drivers)
-    pd.testing.assert_frame_equal(result_df.sort_values("driverRef").reset_index(drop=True),
-                                  expected.sort_values("driverRef").reset_index(drop=True))
+    pd.testing.assert_frame_equal(result_df.sort_values("driverRef").reset_index(drop = True),
+                                  expected.sort_values("driverRef").reset_index(drop = True))
 
 
 @pytest.mark.parametrize(
