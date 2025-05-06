@@ -580,6 +580,20 @@ def ttal_vict_pts_pilote_pure(pilote: str):
 
 # On refait cette fonction mais cette fois avec pandas#
 
+def ttal_vict_pts_table(results: pd.DataFrame, drivers= pd.DataFrame):
+    """
+    """
+    data = pd.merge(results, drivers, on="driverId", how="right")
+    data["win"] = data["positionText"].apply(lambda x: 1 if x == "1" else 0)
+    data["nbr_course"] = data.groupby("driverRef").agg({"raceId": "count"})
+    res = (
+        data.groupby("driverRef")
+        .agg({"points": "sum", "win": "sum", "raceId": "count"})
+        .reset_index()
+    )
+    res["victory_rate"] = round(res["win"] / res["raceId"], 3)
+    return res
+
 
 def ttal_vict_pts_pilote(
     pilote: str, results: pd.DataFrame, drivers: pd.DataFrame
@@ -607,20 +621,12 @@ def ttal_vict_pts_pilote(
         - Nombre de courses disputées (int)
         - Taux de victoire arrondi à 3 décimales (float)
     """
-    data = pd.merge(results, drivers, on="driverId", how="right")
-    data["win"] = data["positionText"].apply(lambda x: 1 if x == "1" else 0)
-    data["nbr_course"] = data.groupby("driverRef").agg({"raceId": "count"})
-    res = (
-        data.groupby("driverRef")
-        .agg({"points": "sum", "win": "sum", "raceId": "count"})
-        .reset_index()
-    )
-    res["victory_rate"] = round(res["win"] / res["raceId"], 3)
+    res = ttal_vict_pts_table(results, drivers)
     res = res[res["driverRef"] == pilote]
     return res.iloc[0].tolist()[1:]
 
 
-def plot_relation_victoires_points(victory_: list, points_: list):
+def plot_relation_wins(victory_: list, points_: list):
     """
     Cette fonction génère un graphique de dispersion montrant la relation entre
     le nombre de victoires et le total de points en F1.
@@ -642,8 +648,30 @@ def plot_relation_victoires_points(victory_: list, points_: list):
     plt.tight_layout()
     plt.show()
 
+def plot_relation_pitstops(pit_stop_: pd.DataFrame, points_: pd.DataFrame,):
+    """
+    Cette fonction génère un graphique de dispersion montrant la relation entre
+    le temps d'arrêt au stand et le total de points en F1.
 
-def regression_lineaire(victory_: list, points_: list):
+    Arguments:
+        pit_stop_ (array-like): Le tableau des nombres de victoires.
+        points_ (array-like): Le tableau des points associés.
+    """
+    plt.figure(figsize=(8, 6))
+    plt.scatter(points_, pit_stop_, color="royalblue", edgecolors="k", s=100, alpha=0.8)
+    plt.title(
+        "Relation entre nombre de points et temps au stand moyen",
+        fontsize=14,
+        fontweight="bold",
+    )
+    plt.ylabel("Nombre de points", fontsize=12)
+    plt.xlabel("durée au stand (en ms)", fontsize=12)
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+
+def regression_lineaire_wins(victory_: list, points_: list):
     """
     Cette fonction effectue une régression linéaire entre les données de victoires et de points.
     Elle affiche plusieurs graphiques pour évaluer la qualité du modèle de régression,
@@ -686,6 +714,81 @@ def regression_lineaire(victory_: list, points_: list):
 
     # Calcul des résidus
     y_pred = model.predict(victory_)
+    residuals = points_ - y_pred
+
+    # QQ plot des résidus pour tester la normalité
+    plt.figure(figsize=(6, 6))
+    stats.probplot(residuals, dist="norm", plot=plt)
+    plt.title("QQ Plot des résidus", fontsize=14, fontweight="bold")
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+    # Visualisation des résidus vs valeurs prédites
+    plt.scatter(y_pred, residuals, alpha=0.7)
+    plt.axhline(0, color="red", linestyle="--")
+    plt.xlabel("Valeurs prédites")
+    plt.ylabel("Résidus")
+    plt.title("Résidus vs. valeurs prédites")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Histogramme des résidus pour vérifier leur distribution
+    plt.hist(residuals, bins=15, edgecolor="black", alpha=0.7)
+    plt.title("Distribution des résidus")
+    plt.xlabel("Résidu")
+    plt.ylabel("Fréquence")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+def regression_lineaire_pitstops(pit_stop_: list, points_: list):
+    """
+    Cette fonction effectue une régression linéaire entre les données de tempsd d'arrêt au stand et de points.
+    Elle affiche plusieurs graphiques pour évaluer la qualité du modèle de régression,
+    ainsi que les statistiques associées.
+
+    Arguments:
+        pit_stop_ (array-like): Le tableau du temps moyens par pilote au stand (pour la régression).
+        points_ (array-like): Le tableau des points associés (pour la régression).
+    """
+    from scipy import stats
+    from sklearn.linear_model import LinearRegression
+
+    pit_stop_ = np.array(pit_stop_).reshape(-1, 1)
+    model = LinearRegression()
+    model.fit(pit_stop_, points_)
+    score = model.score(pit_stop_, points_)
+    print(f"Coefficient (slope) : {model.coef_[0]:.2f}")
+    print(f"Ordonnée à l'origine (intercept) : {model.intercept_:.2f}")
+    print(f"Score R² du modèle : {score:.4f}")
+    x_range = np.linspace(min(pit_stop_), max(pit_stop_), 100).reshape(-1, 1)
+    y_pred = model.predict(x_range)
+    plt.figure(figsize=(8, 6))
+    plt.scatter(
+        pit_stop_,
+        points_,
+        color="royalblue",
+        edgecolors="k",
+        s=100,
+        alpha=0.8,
+        label="Données réelles",
+    )
+    plt.plot(x_range, y_pred, color="crimson", linewidth=2, label="Régression linéaire")
+    plt.title("Régression : Points vs Victoires", fontsize=14, fontweight="bold")
+    plt.xlabel("Nombre de victoires", fontsize=12)
+    plt.ylabel("Total de points", fontsize=12)
+    plt.grid(True, linestyle="--", alpha=0.5)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    # Calcul des résidus
+    y_pred = model.predict(pit_stop_)
     residuals = points_ - y_pred
 
     # QQ plot des résidus pour tester la normalité
