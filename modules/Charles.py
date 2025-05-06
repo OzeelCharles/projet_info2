@@ -107,16 +107,32 @@ def stat_mean_stop_drivers(nom_pilote: str, pit_stops: pd.DataFrame, drivers: pd
                          "liées au pilote recherché.")
     return pit_stop[pit_stop["driverRef"] == nom_pilote]
 
-#def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
+def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame):
     """
+    Génère un classement des pilotes en fonction de la durée moyenne de leurs arrêts aux stands.
+
+    Cette fonction utilise les données des pit stops et des pilotes pour calculer les durées moyennes
+    d'arrêt par pilote à l'aide de la fonction `table_stat_stop_drivers`. Le résultat est un DataFrame
+    trié par ordre croissant de la durée moyenne d'arrêt, affichant pour chaque pilote son identifiant
+    (`driverRef`) et sa durée moyenne (`duration_mean`).
+
+    Paramètres
+    ----------
+    pit_stops : pd.DataFrame
+        Le DataFrame contenant les informations sur les arrêts aux stands.
+    drivers : pd.DataFrame
+        Le DataFrame contenant les informations sur les pilotes.
+
+    Retourne
+    -------
+    pd.DataFrame
+        Un DataFrame trié par durée moyenne d'arrêt croissante, avec les colonnes :
+        - 'driverRef' : identifiant du pilote
+        - 'duration_mean' : durée moyenne d'arrêt aux stands
     """
-    pit_stops = pit_stops.copy(deep = True)
-    drivers = drivers.copy(deep = True)
-    res = pd.merge(pit_stops, drivers, on = "driverId")
-    stat_mean_stop_drivers(drivers["driverRef"], pit_stops, drivers)
-    
-
-
+    data = table_stat_stop_drivers(pit_stops, drivers)
+    data = data.sort_values(by = "duration_mean")
+    return data[["driverRef", "duration_mean"]]
 
 
 def generer_table_fichier(nom_fichier_recherche: str):

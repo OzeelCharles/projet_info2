@@ -14,8 +14,9 @@ Les analyses incluent notamment :
 - **Q6** : Régression linéaire entre le nombre de points et le classement final
 - **Q7** : Classement des écuries selon le nombre total de courses disputées
 - **Q9** : Classement des écuries ayant participé au plus grand nombre de saisons
-- **Q10** : Cartographie des heures de départ des courses sprint et des tours libres
-- **Q11** : Calcul du temps moyen minimum aux stands par pilote
+- **Q10** : Où se passe l'ensemble des courses sur Terre ? 
+- **Q11** : quelles est le classement du temps passé au stand par pilote ? (du plus rapide au plus long)
+- **Q12** : 
 
 Ce projet utilise principalement `pandas`, `numpy`, `matplotlib`, `scikit-learn` et `geopandas`, et s’exécute dans un environnement Jupyter Notebook ou VSCode.
 
@@ -52,10 +53,10 @@ Listez les principales fonctionnalités du projet :
 - ✅ Importation des données à l'aide d'un fichier contenant l'ensemble des bases de données
 - ✅ Représentation graphique de différentes statistiques
 - ✅ Estimation du nombre de point par nombre de victoire
-- ✅ Temps minimum ou maximum moyen passé à l'arrêt par joueur
+- ✅ statitique moyenne du temps passé au stand par joueur
 - ✅ Nombre de points sur toute la carrière du pilote 
 - ✅ Nombre de victoires sur toute la carrière du pilote
-- ✅ Visualisaiton sur une map des heures de départ moyen des différentes courses de F1 par grand prix.
+- ✅ Visualisaiton sur une des positions des circuits de grand prix
 - ✅ 
 
 ---
@@ -72,8 +73,6 @@ Les données utilisées dans ce projet ont été collectées à partir de **Wiki
 Ces données sont sous forme de fichiers CSV.
 
 À noter également :
-
-- La table **`f1_grand_prix_locations.csv`** a été générée avec l’aide de **ChatGPT**, à partir des noms des Grands Prix extraits des fichiers CSV. Ce fichier contient les coordonnées géographiques approximatives des circuits, permettant leur visualisation cartographique avec `geopandas`.
 
 - Le fichier **`naturalearth_lowres`** provient des **données intégrées à la bibliothèque [GeoPandas](https://geopandas.org/en/stable/docs/reference/api/geopandas.datasets.get_path.html)**. Il s’agit d’un jeu de données géographiques mondial en basse résolution, fourni par le projet [Natural Earth](https://www.naturalearthdata.com/), utilisé ici pour afficher les cartes de fond dans les visualisations spatiales.
 
