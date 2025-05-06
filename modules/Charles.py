@@ -582,6 +582,32 @@ def ttal_vict_pts_pilote_pure(pilote: str):
 
 def ttal_vict_pts_table(results: pd.DataFrame, drivers= pd.DataFrame):
     """
+    Calcule les statistiques de performance des pilotes à partir des résultats de course.
+
+    Cette fonction fusionne les données de résultats de course avec celles des pilotes,
+    puis calcule pour chaque pilote :
+        - le total de points marqués,
+        - le nombre de victoires (positionText == "1"),
+        - le nombre total de courses disputées,
+        - le taux de victoire (nombre de victoires divisé par le nombre de courses).
+
+    Paramètres
+    ----------
+    results : pd.DataFrame
+        DataFrame contenant les résultats des courses (doit inclure 'driverId', 'positionText', 'points', 'raceId').
+    
+    drivers : pd.DataFrame, optional
+        DataFrame contenant les informations des pilotes (doit inclure 'driverId' et 'driverRef').
+        Par défaut, un DataFrame vide.
+
+    Retour
+    ------
+    pd.DataFrame
+        DataFrame contenant, pour chaque pilote (driverRef) :
+        - 'points' : total des points marqués,
+        - 'win' : nombre de victoires,
+        - 'raceId' : nombre total de courses,
+        - 'victory_rate' : taux de victoire (victoires / courses).
     """
     data = pd.merge(results, drivers, on="driverId", how="right")
     data["win"] = data["positionText"].apply(lambda x: 1 if x == "1" else 0)

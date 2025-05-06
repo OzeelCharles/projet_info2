@@ -4,74 +4,61 @@
 
 import pandas as pd
 import pytest
-from Charles import min_max_pit_stop_drivers
+from modules.Charles import ttal_vict_pts_table, ttal_vict_pts_pilote
 
-drivers_df = pd.DataFrame({"driverId": [1, 2], "driverRef": ["hamilton", "verstappen"]})
-
-pit_stops_df = pd.DataFrame(
-    {
-        "raceId": [101, 101, 102, 102, 103, 103],
-        "driverId": [1, 1, 1, 1, 2, 2],
-        "milliseconds": [25000, 24000, 23000, 26000, 22000, 28000],
-    }
-)
-
-
-# Jeu de tests paramétrés
 @pytest.mark.parametrize(
-    "nom_pilote, pit_stops, drivers, param, Error",
+    "results, drivers, expected",
     [
-        # Cas valides
-        ("hamilton", pit_stops_df, drivers_df, "min", None),
-        ("hamilton", pit_stops_df, drivers_df, "max", None),
-        ("verstappen", pit_stops_df, drivers_df, "min", None),
-        ("verstappen", pit_stops_df, drivers_df, "max", None),
-        # Param incorrect
-        ("hamilton", pit_stops_df, drivers_df, "moyenne", ValueError),
-        # Colonnes manquantes dans pit_stops
         (
-            "hamilton",
-            pit_stops_df.drop(columns=["milliseconds"]),
-            drivers_df,
-            "min",
-            ValueError,
-        ),
-        (
-            "hamilton",
-            pit_stops_df.drop(columns=["driverId"]),
-            drivers_df,
-            "min",
-            ValueError,
-        ),
-        # Colonnes manquantes dans drivers
-        (
-            "hamilton",
-            pit_stops_df,
-            drivers_df.drop(columns=["driverRef"]),
-            "min",
-            ValueError,
-        ),
-        # milliseconds non convertibles
-        (
-            "hamilton",
-            pd.DataFrame(
-                {
-                    "raceId": [101, 101],
-                    "driverId": [1, 1],
-                    "milliseconds": ["non_numeric", "invalid"],
-                }
-            ),
-            drivers_df,
-            "min",
-            ValueError,
-        ),
-    ],
+            pd.DataFrame([
+                {"driverId": 1, "raceId": 101, "positionText": "1", "points": 25},
+                {"driverId": 1, "raceId": 102, "positionText": "2", "points": 18},
+                {"driverId": 2, "raceId": 101, "positionText": "1", "points": 25},
+                {"driverId": 2, "raceId": 102, "positionText": "1", "points": 25},
+            ]),
+            pd.DataFrame([
+                {"driverId": 1, "driverRef": "hamilton"},
+                {"driverId": 2, "driverRef": "verstappen"},
+            ]),
+            pd.DataFrame([
+                {"driverRef": "hamilton", "points": 43, "win": 1, "raceId": 2, "victory_rate": 0.5},
+                {"driverRef": "verstappen", "points": 50, "win": 2, "raceId": 2, "victory_rate": 1.0},
+            ])
+        )
+    ]
 )
-def test_min_max_pit_stop_drivers(nom_pilote, pit_stops, drivers, param, Error):
-    if Error is not None:
-        with pytest.raises(Error):
-            min_max_pit_stop_drivers(nom_pilote, pit_stops, drivers, param)
-    else:
-        result = min_max_pit_stop_drivers(nom_pilote, pit_stops, drivers, param)
-        assert isinstance(result, pd.DataFrame)
-        assert not result.empty
+def test_ttal_vict_pts_table(results, drivers, expected):
+    result_df = ttal_vict_pts_table(results, drivers)
+    pd.testing.assert_frame_equal(result_df.sort_values("driverRef").reset_index(drop=True),
+                                  expected.sort_values("driverRef").reset_index(drop=True))
+
+
+@pytest.mark.parametrize(
+    "pilote, results, drivers, expected",
+    [
+        (
+            "hamilton",
+            pd.DataFrame([
+                {"driverId": 1, "raceId": 101, "positionText": "1", "points": 25},
+                {"driverId": 1, "raceId": 102, "positionText": "2", "points": 18},
+            ]),
+            pd.DataFrame([
+                {"driverId": 1, "driverRef": "hamilton"},
+            ]),
+            [43.0, 1, 2, 0.5]
+        ),
+        (
+            "verstappen",
+            pd.DataFrame([
+                {"driverId": 2, "raceId": 101, "positionText": "1", "points": 25},
+                {"driverId": 2, "raceId": 102, "positionText": "1", "points": 25},
+            ]),
+            pd.DataFrame([
+                {"driverId": 2, "driverRef": "verstappen"},
+            ]),
+            [50.0, 2, 2, 1.0]
+        ),
+    ]
+)
+def test_ttal_vict_pts_pilote(pilote, results, drivers, expected):
+    assert ttal_vict_pts_pilote(pilote, results, drivers) == expected
