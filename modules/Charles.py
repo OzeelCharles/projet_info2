@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def mappage_courses_sans_noms(circuits: pd.DataFrame, display=False):
+def mappage_courses(circuits: pd.DataFrame, display=False):
     """
     Affiche les circuits des courses de F1 sur une carte du monde (statique), sans les noms des circuits visibles.
 
