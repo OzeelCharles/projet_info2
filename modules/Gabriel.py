@@ -59,6 +59,9 @@ def classement_victoires_écuries():
     constructor_gagnants = constructor_gagnants[["name", "raceId"]].sort_values(
         by="raceId", ascending=False
     )
+    constructor_gagnants.to_csv(
+        "resultats/Q4-pandas.csv", index=False, encoding="utf-8"
+    )
     return constructor_gagnants
 
 
@@ -134,6 +137,9 @@ def reponseQ5():
     # on simplifie l'affichage
     max_points_par_annee = max_points_par_annee.rename(
         columns={"year": "nombre_saisons"}
+    )
+    max_points_par_annee.to_csv(
+        "resultats/Q5-pandas.csv", index=False, encoding="utf-8"
     )
     # on retourne le classement
     return max_points_par_annee.sort_values(by="nombre_saisons", ascending=False)
@@ -431,4 +437,5 @@ def classement_nom(path1, path2):
         for position, (nom, nb_victoires) in enumerate(classement, 1):
             f.write(f"{position}. {nom} - {nb_victoires} victoires\n")
         f.write("\n" + "-" * 50 + "\n\n")
+
     return classement
