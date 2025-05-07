@@ -95,6 +95,7 @@ Ces données sont sous forme de fichiers CSV.
   - `matplotlib` – visualisation  
   - `scikit-learn` – machine learning  
   - `geopandas` – traitement et visualisation de données géospatiales  
+  - `statsmodel`- modélisation statistique (régressions, tests statistiques, modèles linéaires et non linéaires)
 - **Environnement** : Jupyter Notebook / VSCode  
 
 ---

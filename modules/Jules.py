@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.nonparametric.smoothers_lowess import lowess
 
+
 # # Fonctions Question 1
 
 
