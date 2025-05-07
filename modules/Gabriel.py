@@ -410,4 +410,10 @@ def classement_nom(path1, path2):
         for écurie in unique:
             if couple[0] == écurie[0]:
                 couple[0] = écurie[1]
+
+    with open('/workspaces/projet_info2/resultats/Q4-python_base.txt', "a", encoding="utf-8") as f:
+        f.write("Classement des écuries par nombre de victoires :\n")
+        for position, (nom, nb_victoires) in enumerate(classement, 1):
+            f.write(f"{position}. {nom} - {nb_victoires} victoires\n")
+        f.write("\n" + "-" * 50 + "\n\n")
     return classement
