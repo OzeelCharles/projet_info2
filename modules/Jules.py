@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from statsmodels.nonparametric.smoothers_lowess import lowess
+
 
 # # Fonctions Question 1
 
@@ -234,46 +236,100 @@ def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
     plt.show()
 
 
-def plot_speed_evolution_lowess(df_speed: pd.DataFrame, frac: float = 0.2) -> None:
+def plot_speed_evolution_lowess(df_speed, frac=0.25, smoother=None):
     """
-    Affiche l'évolution de la vitesse moyenne des vainqueurs avec un lissage LOWESS.
+    Affiche un lissage LOWESS sur l'évolution de la vitesse moyenne des vainqueurs.
 
     Parameters
     ----------
-    df_speed : pd.DataFrame
-        Données contenant 'year' et 'speed_kmh'.
+    df_speed : pandas.DataFrame
+        Tableau avec les colonnes 'year' et 'speed_kmh'.
     frac : float
-        Proportion des données utilisées pour chaque régression locale (entre 0 et 1).
+        Fraction de données utilisées pour le lissage.
+    smoother : fonction
+        La fonction LOWESS à utiliser (doit être passée depuis le notebook).
 
     Returns
     -------
     None
     """
-    sns.set(style="whitegrid")
-    plt.figure(figsize=(14, 7))
+    if smoother is None:
+        raise ValueError("Veuillez fournir la fonction 'lowess' via le paramètre 'smoother'.")
 
     x = df_speed["year"].values
     y = df_speed["speed_kmh"].values
 
-    # Application du lissage LOWESS
-    smoothed = lowess(endog=y, exog=x, frac=frac, return_sorted=True)
+    smoothed = smoother(endog=y, exog=x, frac=frac, return_sorted=True)
 
-    # Tracés
+    plt.figure(figsize=(12, 6))
     plt.plot(x, y, "o", label="Données brutes", alpha=0.6)
-    plt.plot(
-        smoothed[:, 0],
-        smoothed[:, 1],
-        color="green",
-        linewidth=2.5,
-        label="LOWESS (lissage local)",
-    )
-
-    plt.title(
-        "Évolution lissée de la vitesse moyenne des vainqueurs de F1", fontsize=16
-    )
+    plt.plot(smoothed[:, 0], smoothed[:, 1], color="red", label="LOWESS")
+    plt.title("Lissage LOWESS de la vitesse moyenne")
     plt.xlabel("Année")
     plt.ylabel("Vitesse moyenne (km/h)")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+
+def reponseQ6(results, drivers):
+    """
+    Affiche le classement des pilotes ayant remporté le plus de Grands Prix,
+    à l'aide d'une version avec pandas, puis d'une version sans pandas.
+
+    Parameters
+    ----------
+    results : pandas.DataFrame
+        Données des résultats de courses, incluant la position d'arrivée et les identifiants des pilotes.
+    drivers : pandas.DataFrame
+        Données sur les pilotes, incluant leurs identifiants, prénoms et noms.
+
+    Returns
+    -------
+    None
+        Affiche le tableau des pilotes ayant au moins 30 victoires (avec pandas),
+        le graphique associé, des statistiques descriptives, puis une version texte
+        équivalente construite sans utiliser pandas.
+    """
+    print("→ Classement des pilotes ayant remporté au moins 30 courses (avec pandas) :\n")
+    winners = filtrer_vainqueurs(results)
+    top_winners = compter_victoires(winners, drivers)
+    top_winners = top_winners.sort_values("wins", ascending=False).loc[:, ["surname", "wins"]]
+    print(top_winners)
+    plot_victoires(top_winners)
+    stats_victoires(top_winners)
+
+    print("\n→ Classement (version sans pandas) :\n")
+    drivers_dict = lire_drivers_depuis_table(drivers.to_dict("records"))
+    victory_counts = compter_victoires_depuis_table(results.to_dict("records"))
+    top_pilotes = filtrer_pilotes(victory_counts, drivers_dict)
+
+    for nom, victoires in top_pilotes:
+        print(f"{nom} : {victoires} victoires")
+
+
+def reponseQ7(results, races):
+    """
+    Calcule et affiche l'évolution de la vitesse moyenne des vainqueurs de Grands Prix par année.
+    Deux visualisations sont générées : une régression linéaire et un lissage LOWESS.
+
+    Parameters
+    ----------
+    results : pandas.DataFrame
+        Résultats des courses, incluant le temps de course (en millisecondes) et les identifiants de course.
+    races : pandas.DataFrame
+        Données sur les courses, incluant les années et les identifiants de course.
+
+    Returns
+    -------
+    None
+        Affiche un aperçu des vitesses moyennes par année et produit deux graphiques montrant
+        l'évolution temporelle (régression linéaire + lissage non paramétrique).
+    """
+    df_speed = compute_speed_per_year(results, races)
+    print(df_speed.head())
+    print("\n→ Graphique avec régression linéaire :")
+    plot_speed_evolution_improved(df_speed)
+    print("\n→ Graphique avec lissage LOWESS :")
+    plot_speed_evolution_lowess(df_speed, smoother=lowess)
