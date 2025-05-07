@@ -9,8 +9,8 @@ Les analyses incluent notamment :
 - **Q1** : Comment se répartie les circuits de la formule 1 sur la terre ?
 - **Q2** : Comment comparer deux pilotes selons leurs résultats de courses ?
 - **Q3** : Comment se répartie le temps d'arrêt au stand des pilotes dont on possède les données ?
-- **Q4** : 
-- **Q5** : 
+- **Q4** : Quelle est l'écurie qui a remporté le plus de victoires cumulées? Faire un classement (Avec pandas et en python-base)
+- **Q5** : Quelle est l'écurie qui a remporté le plus de saisons ? Faire un classement 
 - **Q6** : 
 - **Q7** : 
 - **Q9** : 
@@ -58,7 +58,8 @@ Listez les principales fonctionnalités du projet :
 - ✅ Nombre de victoires sur toute la carrière du pilote
 - ✅ Visualisaiton sur une des positions des circuits de grand prix
 - ✅ taux de victoire total par pilote
-- ✅ 
+- ✅ Nombre de victoire cumulées pour les écuries
+- ✅ Nombre de saisons remportées en cumulé pour les écuries
 
 ---
 
