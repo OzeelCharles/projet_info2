@@ -34,6 +34,7 @@ pytz==2025.2
 # Visualisation
 matplotlib==3.8.4
 seaborn==0.13.2
+statsmodels==0.14.0
 
 # Optionnel mais utile
 scipy==1.9.3
