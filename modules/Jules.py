@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.nonparametric.smoothers_lowess import lowess
+from pathlib import Path
+from datetime import datetime
+import csv
 
 
 # # Fonctions Question 1
@@ -70,6 +73,13 @@ def plot_victoires(top_winners: pd.DataFrame) -> None:
     -------
     None
     """
+    #ici on construit la sauvegarde#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+    #on crée un nom de fichier#
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"plot_victoroires_{horodatage}.png"
     plt.figure(figsize=(12, 7))
     sns.set(style="whitegrid")
     sorted_data = top_winners.sort_values("wins", ascending=False)
@@ -77,6 +87,7 @@ def plot_victoires(top_winners: pd.DataFrame) -> None:
     plt.title("Pilotes ayant remporté au moins 30 Grands Prix", fontsize=16)
     plt.xlabel("Nombre de victoires")
     plt.ylabel("Pilote")
+    plt.savefig(nom_fichier)
     plt.show()
 
 
@@ -192,7 +203,16 @@ def compute_speed_per_year(results: pd.DataFrame, races: pd.DataFrame) -> pd.Dat
     merged["hours"] = merged["milliseconds"] / (1000 * 60 * 60)
     merged["speed_kmh"] = 305 / merged["hours"]
     merged = merged[merged["speed_kmh"] <= 350]
-    return merged.groupby("year")["speed_kmh"].mean().reset_index()
+    res = merged.groupby("year")["speed_kmh"].mean().reset_index()
+    #chemin vers le fichier de recup #
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+   #nom fichier #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"compute_speed_table_{horodatage}.csv"
+    res.to_csv(nom_fichier, index=False)
+    return res
 
 
 def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
@@ -208,6 +228,7 @@ def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
     -------
     None
     """
+
     sns.set(style="whitegrid")
     plt.figure(figsize=(14, 7))
     x = df_speed["year"].values
@@ -217,6 +238,16 @@ def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
     y_pred = trend(x)
     residuals = y - y_pred
     std_error = np.std(residuals)
+
+    #ici on construit la sauvegarde#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #on crée un nom de fichier#
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"plot_speed_evolution_improved_{horodatage}.png"
+
     sns.lineplot(x=x, y=y, label="Vitesse moyenne", marker="o")
     plt.plot(x, y_pred, label="Régression (linéaire)", color="red", linewidth=2)
     plt.fill_between(
@@ -233,6 +264,7 @@ def plot_speed_evolution_improved(df_speed: pd.DataFrame) -> None:
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
 
@@ -261,6 +293,15 @@ def plot_speed_evolution_lowess(df_speed, frac=0.25, smoother=None):
 
     smoothed = smoother(endog=y, exog=x, frac=frac, return_sorted=True)
 
+    #ici on construit la sauvegarde#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #on crée un nom de fichier#
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"plot_speed_evolution_lowess_{horodatage}.png"
+
     plt.figure(figsize=(12, 6))
     plt.plot(x, y, "o", label="Données brutes", alpha=0.6)
     plt.plot(smoothed[:, 0], smoothed[:, 1], color="red", label="LOWESS")
@@ -270,6 +311,7 @@ def plot_speed_evolution_lowess(df_speed, frac=0.25, smoother=None):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
 
