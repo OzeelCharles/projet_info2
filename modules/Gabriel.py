@@ -219,7 +219,9 @@ def points_courses(path):
         Liste contenant, pour chaque course (raceId), une sous-liste de points
     """
     L = Liste_constructor(path)
-    L = select_element(L, [1, 2, 3])  # Assure-toi que ça donne [raceId, constructorId, points]
+    L = select_element(
+        L, [1, 2, 3]
+    )  # Assure-toi que ça donne [raceId, constructorId, points]
     L = L[1:]  # Ignore l'en-tête
     print(L)
     Liste_course = []
@@ -233,7 +235,6 @@ def points_courses(path):
         if race_id == course_id_courant:
             points_course_courante.append(float(ligne[2]))
 
-
         elif race_id != course_id_courant:
             Liste_course.append(points_course_courante)
             points_course_courante = []
@@ -243,7 +244,6 @@ def points_courses(path):
     Liste_course.append(points_course_courante)
 
     return Liste_course
-
 
 
 def participants_courses(path):
@@ -279,6 +279,8 @@ def participants_courses(path):
     Liste_course.append(points_course_courante)
 
     return Liste_course
+
+
 def longueur_sous_liste(l: list):
     """
     Renvoit la liste des longueurs uniques des sous listes d'une liste
@@ -412,9 +414,7 @@ def classement_nom(path1, path2):
     list
         liste par ordre décroissant des écuries avec leur nombre de victoire associé
     """
-    noms = Liste_constructor(
-        path2
-    )
+    noms = Liste_constructor(path2)
     noms = select_element(noms, [0, 2])
     classement = classement_id(path1)
     unique = []
@@ -426,7 +426,7 @@ def classement_nom(path1, path2):
             if couple[0] == écurie[0]:
                 couple[0] = écurie[1]
 
-    with open('resultats/Q4-python_base.txt', "a", encoding="utf-8") as f:
+    with open("resultats/Q4-python_base.txt", "a", encoding="utf-8") as f:
         f.write("Classement des écuries par nombre de victoires :\n")
         for position, (nom, nb_victoires) in enumerate(classement, 1):
             f.write(f"{position}. {nom} - {nb_victoires} victoires\n")
