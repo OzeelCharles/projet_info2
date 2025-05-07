@@ -11,8 +11,8 @@ Les analyses incluent notamment :
 - **Q3** : Comment se répartie le temps d'arrêt au stand des pilotes dont on possède les données ?
 - **Q4** : Quelle est l'écurie qui a remporté le plus de victoires cumulées? Faire un classement (Avec pandas et en python-base)
 - **Q5** : Quelle est l'écurie qui a remporté le plus de saisons ? Faire un classement 
-- **Q6** : 
-- **Q7** : 
+- **Q6** : Quelles sont les pilotes ayant remporté le plus de victoire ? Faire un classement (Avec pandas et en pyhton-base)
+- **Q7** : Comment la vitesse moyenne a-t-elle évolué au fil des années
 - **Q9** : 
 - **Q10** : 
 
@@ -60,6 +60,12 @@ Listez les principales fonctionnalités du projet :
 - ✅ taux de victoire total par pilote
 - ✅ Nombre de victoire cumulées pour les écuries
 - ✅ Nombre de saisons remportées en cumulé pour les écuries
+- ✅ Classement des pilotes ayant remporté le plus de courses
+- ✅ Visualisation graphique du nombre de victoires par pilote
+- ✅ Affichage des statistiques descriptives sur les victoires
+- ✅ Calcul de la vitesse moyenne des vainqueurs à partir des temps de course
+- ✅ Visualisation de l’évolution de la vitesse moyenne par année avec régression linéaire
+- ✅ Lissage pour observer les variations fines de la vitesse au fil des saisons
 
 ---
 
@@ -112,6 +118,6 @@ pip install -r requirements.txt
 ## 👥 Auteurs
 
 - Charles OZEEL – interface GIT, Module Charles.py, README.md, Notebook_final.ipyn(introduction, Q1, Q2, Q3, reg linéaire entre win et points, pit_stop et points)– [@Lachance#233020](https://github.com/OzeelCharles)
-- Jules – – []()
+- Jules ROQUES – Module Jules.py, Notebook_final.ipyn(Q6, Q7, reg lineaire simple et lissage pour évolution de la vitesse,) – [@BronxBrazil](https://github.com/JulesRoques)
 - Lilian - -[]()
 - Gabriel - -[]()
