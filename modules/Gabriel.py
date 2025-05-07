@@ -1,9 +1,9 @@
-
 import numpy as np
 import pandas as pd
 import copy as cp
 from src import import_data as i_d
-#importation des données
+
+# importation des données
 
 i_d.charger_donnees_depuis_bureau()
 
@@ -13,6 +13,7 @@ i_d.charger_donnees_depuis_bureau()
 2) Quelle écurie a remporté le plus de saisons ?(faire un classement)
 3) Question en python base:
 """
+
 
 def rm_na(l):
     """
@@ -29,10 +30,9 @@ def rm_na(l):
     un dataframe pandas dont les \\N ont été remplacées par des NaN
     """
     if not isinstance(l, pd.DataFrame):
-        raise TypeError(f'{l} doit être un dataframe pandas')
+        raise TypeError(f"{l} doit être un dataframe pandas")
     table_corrigée = cp.deepcopy(l)
     return table_corrigée.replace("\\N", np.nan)
-
 
 
 def classement_victoires_écuries():
@@ -44,23 +44,26 @@ def classement_victoires_écuries():
     un dataframe pandas qui condense le classement des écuries
     selon le nombre de victoires cumulées
     """
-    constructor_gagnants = constructor_results.loc[constructor_results['points'] ==
-                                                   constructor_results.groupby('raceId')
-                                                   ['points'].transform('max')]
-    constructor_gagnants = constructor_gagnants[['raceId', 'constructorId']]
-    constructor_gagnants = constructor_gagnants.groupby('constructorId')['raceId'].count()
+    constructor_gagnants = constructor_results.loc[
+        constructor_results["points"]
+        == constructor_results.groupby("raceId")["points"].transform("max")
+    ]
+    constructor_gagnants = constructor_gagnants[["raceId", "constructorId"]]
+    constructor_gagnants = constructor_gagnants.groupby("constructorId")[
+        "raceId"
+    ].count()
     constructor_gagnants = constructor_gagnants.sort_values(ascending=False)
-    constructor_gagnants = pd.merge(constructor_gagnants, constructors, on = "constructorId", how = "right")
+    constructor_gagnants = pd.merge(
+        constructor_gagnants, constructors, on="constructorId", how="right"
+    )
     constructor_gagnants = constructor_gagnants[["name", "raceId"]].sort_values(
-        by = 'raceId', ascending=False)
-    return(constructor_gagnants)
-
-
-
-
+        by="raceId", ascending=False
+    )
+    return constructor_gagnants
 
 
 # 2) quel constructeur a remporté le plus de saisons ? Faire un classement
+
 
 def classement_courses_points():
     """
@@ -74,9 +77,9 @@ def classement_courses_points():
     """
     # on fait correspondre les tables races et constructor_results pour obtenir
     # en une seule table les variables "constructorId", "year" et "points"
-    total_course = pd.merge(races, constructor_results, how = "inner")
+    total_course = pd.merge(races, constructor_results, how="inner")
     total_course = total_course.loc[:, ["year", "constructorId", "points"]]
-    return(total_course)
+    return total_course
 
 
 def points_construct_annee():
@@ -92,8 +95,10 @@ def points_construct_annee():
     """
     total_course = classement_courses_points()
     # on exprime le nombre de points cumulés par constructeur pour une année donnée
-    total_annee = total_course.groupby(['constructorId', 'year'])['points'].sum().reset_index()
-    return(total_annee)
+    total_annee = (
+        total_course.groupby(["constructorId", "year"])["points"].sum().reset_index()
+    )
+    return total_annee
 
 
 def max_point_construct_annee():
@@ -108,10 +113,11 @@ def max_point_construct_annee():
     total_annee = points_construct_annee()
     # on ne garde dans la table que les points max pour une année donnée
     max_points_par_annee = total_annee.loc[
-    total_annee['points'] == total_annee.groupby('year')['points'].transform('max')
+        total_annee["points"] == total_annee.groupby("year")["points"].transform("max")
     ]
     max_points_par_annee = max_points_par_annee.sort_values(by="year")
-    return(max_points_par_annee)
+    return max_points_par_annee
+
 
 def reponseQ2():
     """
@@ -122,19 +128,23 @@ def reponseQ2():
     # on compte le nombre d'années remportées par constructeur
     max_points_par_annee = max_points_par_annee.groupby("constructorId")["year"].size()
     # on récupère le nom du constructeur à partir de constructorId
-    max_points_par_annee = pd.merge(max_points_par_annee, constructors, on = ["constructorId"], how = "inner")
+    max_points_par_annee = pd.merge(
+        max_points_par_annee, constructors, on=["constructorId"], how="inner"
+    )
     # on simplifie l'affichage
-    max_points_par_annee = max_points_par_annee.rename(columns = {"year" : "nombre_saisons"})
+    max_points_par_annee = max_points_par_annee.rename(
+        columns={"year": "nombre_saisons"}
+    )
     # on retourne le classement
-    return(max_points_par_annee.sort_values(by = "nombre_saisons", ascending = False))
-
-
+    return max_points_par_annee.sort_values(by="nombre_saisons", ascending=False)
 
 
 # 3) Question python base: faire le classement des écuries selon le nombre de courses remportées
 
 
 import csv
+
+
 def Liste_constructor(path: str):
     """
     Prend une table et condense les valeurs d'une colonne donnée
@@ -150,15 +160,15 @@ def Liste_constructor(path: str):
         list qui recense les valeurs de la colonne
     """
     liste = []
-    with open(f'{path}', mode='r', encoding='utf-8', newline='') as results:
+    with open(f"{path}", mode="r", encoding="utf-8", newline="") as results:
         results = csv.reader(results)
         for row in results:
             liste.append(row)
-    return(liste)
+    return liste
 
 
 def select_element(l: list, indices: list):
-    """ Simplifie une liste
+    """Simplifie une liste
 
     Parameters:
     ----------
@@ -174,15 +184,15 @@ def select_element(l: list, indices: list):
 
     """
     if not isinstance(l, list):
-        raise TypeError(f'{l} doit être une liste')
+        raise TypeError(f"{l} doit être une liste")
     if not isinstance(indices, list):
-        raise TypeError(f'{indices} doit être une liste')
+        raise TypeError(f"{indices} doit être une liste")
     if len(l) == 0:
-        raise ValueError('la liste est vide')
+        raise ValueError("la liste est vide")
     if len(indices) == 0:
-        raise ValueError('la liste d\'indices est vide')
+        raise ValueError("la liste d'indices est vide")
     if len(indices) > len(l[0]):
-        raise ValueError('les indices excèdent la taille de la liste')
+        raise ValueError("les indices excèdent la taille de la liste")
     liste = []
     liste_inter = []
     for i in range(len(l)):
@@ -191,7 +201,7 @@ def select_element(l: list, indices: list):
         liste.append(liste_inter)
         liste_inter = []
 
-    return(liste)
+    return liste
 
 
 def points_courses():
@@ -202,20 +212,23 @@ def points_courses():
     list
         liste qui rencense les points pour chaque course
     """
-    L = Liste_constructor('/Users/gabriels./Desktop/donnees_formule_un/constructor_results.csv')
+    L = Liste_constructor(
+        "/Users/gabriels./Desktop/donnees_formule_un/constructor_results.csv"
+    )
     L = select_element(L, [1, 2, 3])
     Liste_course_inter = []
     Liste_course = []
-    for i in range (len(L)-1):
+    for i in range(len(L) - 1):
         Liste_course_inter.append(L[i][2])
-        if L[i][0] != L[i+1][0]:
+        if L[i][0] != L[i + 1][0]:
             Liste_course.append(Liste_course_inter)
             Liste_course_inter = []
     Liste_course_inter.append(L[-1][2])
     Liste_course.append(Liste_course_inter)
     Liste_course = Liste_course[1:]
     Liste_course = [[float(x) for x in sous_liste] for sous_liste in Liste_course]
-    return(Liste_course)
+    return Liste_course
+
 
 def participants_courses():
     """
@@ -227,18 +240,15 @@ def participants_courses():
     """
     Liste_course_inter = []
     Liste_course = []
-    for i in range (len(L)-1):
+    for i in range(len(L) - 1):
         Liste_course_inter.append(L[i][1])
-        if L[i][0] != L[i+1][0]:
+        if L[i][0] != L[i + 1][0]:
             Liste_course.append(Liste_course_inter)
             Liste_course_inter = []
     Liste_course_inter.append(L[-1][1])
     Liste_course.append(Liste_course_inter)
     Liste_course = Liste_course[1:]
-    return(Liste_course)
-
-
-
+    return Liste_course
 
 
 def longueur_sous_liste(l: list):
@@ -256,20 +266,20 @@ def longueur_sous_liste(l: list):
         liste des longueurs des sous listes
     """
     if not isinstance(l, list):
-        raise TypeError(f'{l} doit être une liste')
+        raise TypeError(f"{l} doit être une liste")
     if len(l) == 0:
-        raise ValueError('la liste est vide')
+        raise ValueError("la liste est vide")
     liste_unique = []
     for i in l:
         if len(i) not in liste_unique:
             liste_unique.append(len(i))
-    return(liste_unique)
-
+    return liste_unique
 
 
 # on décide ici de supprimer les courses où il n'y a eu qu'un seul participant
 
-def supp_in_list(l:list, v:int):
+
+def supp_in_list(l: list, v: int):
     """
     Supprime les éléments d'une liste dont la longueur est égale à v
 
@@ -286,17 +296,16 @@ def supp_in_list(l:list, v:int):
         liste sans les sous listes de longueur v
     """
     if not isinstance(l, list):
-        raise TypeError(f'{l} doit être une liste')
+        raise TypeError(f"{l} doit être une liste")
     if len(l) == 0:
-        raise ValueError('la liste est vide')
+        raise ValueError("la liste est vide")
     liste = []
     for i in range(len(l)):
         if len(l[i]) == v:
             liste.append(i)
     for i in liste:
         del l[i]
-    return(l)
-
+    return l
 
 
 def gagnants():
@@ -309,19 +318,19 @@ def gagnants():
     # supprime les courses avec un seul participant
 
     points = supp_in_list(points_courses(), 1)
-    participants = supp_in_list(participants_courses(), 1) # idem
+    participants = supp_in_list(participants_courses(), 1)  # idem
     gagnants = []
     for i in range(len(points)):
         if len(points[i]) != len(participants[i]):
-            print(f"Incohérence à l'index {i} : {len(points[i])} points vs {len(participants[i])} participants")
+            print(
+                f"Incohérence à l'index {i} : {len(points[i])} points vs {len(participants[i])} participants"
+            )
             continue
         else:
             for j in range(len(points[i])):
-                if points[i][j]== max(points[i]):
+                if points[i][j] == max(points[i]):
                     gagnants.append(participants[i][j])
-    return(gagnants)
-
-
+    return gagnants
 
 
 def classement_id():
@@ -343,11 +352,10 @@ def classement_id():
             classement.append([ecurie, 0])
     for e1 in winner:
         for e2 in classement:
-            if e2[0]==e1:
-                e2[1] +=1
+            if e2[0] == e1:
+                e2[1] += 1
     classement = sorted(classement, key=lambda x: x[1], reverse=True)
-    return(classement)
-
+    return classement
 
 
 def classement_nom():
@@ -358,7 +366,9 @@ def classement_nom():
     list
         liste par ordre décroissant des écuries avec leur nombre de victoire associé
     """
-    noms = Liste_constructor('/Users/gabriels./Desktop/donnees_formule_un/constructors.csv')
+    noms = Liste_constructor(
+        "/Users/gabriels./Desktop/donnees_formule_un/constructors.csv"
+    )
     noms = select_element(noms, [0, 2])
     classement = classement_id()
     unique = []
@@ -369,4 +379,4 @@ def classement_nom():
         for écurie in unique:
             if couple[0] == écurie[0]:
                 couple[0] = écurie[1]
-    return(classement)
+    return classement
