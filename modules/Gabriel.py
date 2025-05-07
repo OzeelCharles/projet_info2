@@ -206,32 +206,44 @@ def select_element(l: list, indices: list):
 
 def points_courses(path):
     """
-    Liste des points accordés à chaque écurie pour chaque course
-    Parameter:
-    ----------
-    path
-        chemin d'accès vers la table constructor_results
+    Liste des points accordés à chaque écurie pour chaque course (raceId)
 
-    Return
-    ------
-    list
-        liste qui rencense les points pour chaque course
+    Parameters
+    ----------
+    path : str
+        Chemin vers le fichier de données
+
+    Returns
+    -------
+    list of list of float
+        Liste contenant, pour chaque course (raceId), une sous-liste de points
     """
-    L = Liste_constructor(
-        f'{path}'
-    )
-    Liste_course_inter = []
+    L = Liste_constructor(path)
+    L = select_element(L, [1, 2, 3])  # Assure-toi que ça donne [raceId, constructorId, points]
+    L = L[1:]  # Ignore l'en-tête
+    print(L)
     Liste_course = []
-    for i in range(len(L) - 1):
-        Liste_course_inter.append(L[i][2])
-        if L[i][0] != L[i + 1][0]:
-            Liste_course.append(Liste_course_inter)
-            Liste_course_inter = []
-    Liste_course_inter.append(L[-1][2])
-    Liste_course.append(Liste_course_inter)
-    Liste_course = Liste_course[1:]
-    Liste_course = [[float(x) for x in sous_liste] for sous_liste in Liste_course]
+    course_id_courant = L[0][0]
+    print(course_id_courant)
+    points_course_courante = []
+
+    for ligne in L:
+        race_id = ligne[0]
+
+        if race_id == course_id_courant:
+            points_course_courante.append(float(ligne[2]))
+
+
+        elif race_id != course_id_courant:
+            Liste_course.append(points_course_courante)
+            points_course_courante = []
+            course_id_courant = ligne[0]
+
+    # ajout de la dernière course
+    Liste_course.append(points_course_courante)
+
     return Liste_course
+
 
 
 def participants_courses(path):
@@ -249,21 +261,24 @@ def participants_courses(path):
 
     Liste_course_inter = []
     Liste_course = []
-    L = Liste_constructor(
-        f'{path}'
-    )
+    L = Liste_constructor(path)
     L = select_element(L, [1, 2, 3])
-    for i in range(len(L) - 1):
-        Liste_course_inter.append(L[i][1])
-        if L[i][0] != L[i + 1][0]:
-            Liste_course.append(Liste_course_inter)
-            Liste_course_inter = []
-    Liste_course_inter.append(L[-1][1])
-    Liste_course.append(Liste_course_inter)
-    Liste_course = Liste_course[1:]
+    L = L[1:]  # Ignore l'en-tête
+    Liste_course = []
+    course_id_courant = L[0][0]
+    points_course_courante = []
+    for ligne in L:
+        race_id = ligne[0]
+        if race_id == course_id_courant:
+            points_course_courante.append(float(ligne[1]))
+        elif race_id != course_id_courant:
+            Liste_course.append(points_course_courante)
+            points_course_courante = []
+            course_id_courant = ligne[0]
+    # ajout de la dernière course
+    Liste_course.append(points_course_courante)
+
     return Liste_course
-
-
 def longueur_sous_liste(l: list):
     """
     Renvoit la liste des longueurs uniques des sous listes d'une liste
