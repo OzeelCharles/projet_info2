@@ -8,6 +8,9 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+from datetime import datetime
+import csv
 
 
 def mappage_courses(circuits: pd.DataFrame, display=False):
@@ -28,6 +31,14 @@ def mappage_courses(circuits: pd.DataFrame, display=False):
         crs="EPSG:4326",
     )
     world = gpd.read_file("naturalearth_lowres/naturalearth_lowres.shp")
+    #ici on construit la sauvegarde#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #on crée un nom de fichier#
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"mapp_F1_{horodatage}.png"
     fig, ax = plt.subplots(figsize=(15, 10))
     world.plot(ax=ax, color="lightgray", edgecolor="white")
     geo_df.plot(ax=ax, color="midnightblue", markersize=50)
@@ -37,6 +48,8 @@ def mappage_courses(circuits: pd.DataFrame, display=False):
         ):
             ax.text(x + 1, y + 0.5, name, fontsize=7, ha="left", va="bottom")
     plt.title("Circuits de F1 dans le monde", fontsize=16)
+    #on le sauvegarde#
+    fig.savefig(nom_fichier)
     plt.show()
 
 
@@ -158,9 +171,20 @@ def classement_mean_stop_drivers(pit_stops: pd.DataFrame, drivers: pd.DataFrame)
         - 'driverRef' : identifiant du pilote
         - 'duration_mean' : durée moyenne d'arrêt aux stands
     """
+    #Chemin vers le fichier résultat#
+    bureau = Path.home() / "Desktop"
+    dossier_resultat = bureau / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+    
+    #Nommage du fichier en sortie#
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"classement_pitstop_{horodatage}.csv"
+
     data = table_stat_stop_drivers(pit_stops, drivers)
     data = data.sort_values(by="duration_mean")
-    return data[["driverRef", "duration_mean"]]
+    data = data[["driverRef", "duration_mean"]]
+    data.to_csv(nom_fichier, index=False)
+    return data
 
 
 def plot_duration_mean_distribution(
@@ -184,6 +208,16 @@ def plot_duration_mean_distribution(
     ]
     df["interval"] = pd.cut(df["duration_mean"], bins=bins)
     interval_counts = df["interval"].value_counts(normalize=True).sort_index()
+    
+    #ici on construit la sauvegarde#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #on crée un nom de fichier#
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"distrib_pit_stops_{horodatage}.png"
+
     plt.figure(figsize=(12, 6))
     plt.bar(
         interval_counts.index.astype(str),
@@ -198,6 +232,8 @@ def plot_duration_mean_distribution(
     plt.ylabel("Fréquence relative")
     plt.xticks(rotation=45)
     plt.tight_layout()
+    
+    plt.savefig(nom_fichier)
     plt.show()
 
 
@@ -575,7 +611,21 @@ def ttal_vict_pts_pilote_pure(pilote: str):
     table = ttal_vict_pts_pilote_table()
     if pilote not in table.keys():
         raise ValueError(f"{pilote} n'est pas un pilote référencé")
-    return table[pilote]
+    
+    res = table[pilote]
+    # Chemin vers le bureau 
+    bureau = Path.home() / "Desktop"
+    dossier = bureau / "résultat"
+    dossier.mkdir(exist_ok=True)
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    fichier = dossier / f"stats_pure_{pilote}_{timestamp}.csv"
+
+     # Écriture en CSV pur (sans pandas)
+    with open(fichier, mode="w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["victoires", "points", "courses", "taux_victoire"])
+        writer.writerow(res)
+    return res
 
 
 # On refait cette fonction mais cette fois avec pandas#
@@ -647,9 +697,20 @@ def ttal_vict_pts_pilote(
         - Nombre de courses disputées (int)
         - Taux de victoire arrondi à 3 décimales (float)
     """
+    #chemin vers le fichier résultat sur le bureau #
+    bureau = Path.home() / "Desktop"
+    dossier_resultat = bureau / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+    #nom du fichier#
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"stats_{pilote}_{timestamp}.csv"
+
     res = ttal_vict_pts_table(results, drivers)
     res = res[res["driverRef"] == pilote]
-    return res.iloc[0].tolist()[1:]
+    res = res.iloc[0]
+    res.to_csv(nom_fichier, index=False)
+    res = res.tolist()[1:]
+    return res
 
 
 def plot_relation_wins(victory_: list, points_: list):
@@ -661,6 +722,17 @@ def plot_relation_wins(victory_: list, points_: list):
         victory_ (array-like): Le tableau des nombres de victoires.
         points_ (array-like): Le tableau des points associés.
     """
+
+    #on ajoute le graphe au dossier#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #Ici on nomme le premier graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"scatterplot_wins_{horodatage}.png"
+
+
     plt.figure(figsize=(8, 6))
     plt.scatter(victory_, points_, color="royalblue", edgecolors="k", s=100, alpha=0.8)
     plt.title(
@@ -672,6 +744,7 @@ def plot_relation_wins(victory_: list, points_: list):
     plt.ylabel("Total de points", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
 def plot_relation_pitstops(pit_stop_: pd.DataFrame, points_: pd.DataFrame,):
@@ -683,6 +756,15 @@ def plot_relation_pitstops(pit_stop_: pd.DataFrame, points_: pd.DataFrame,):
         pit_stop_ (array-like): Le tableau des nombres de victoires.
         points_ (array-like): Le tableau des points associés.
     """
+    # on ajoute le graphe au dossier#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #Ici on nomme le premier graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"scatterplot_pit_stops_{horodatage}.png"
+
     plt.figure(figsize=(8, 6))
     plt.scatter(points_, pit_stop_, color="royalblue", edgecolors="k", s=100, alpha=0.8)
     plt.title(
@@ -694,6 +776,7 @@ def plot_relation_pitstops(pit_stop_: pd.DataFrame, points_: pd.DataFrame,):
     plt.xlabel("durée au stand (en ms)", fontsize=12)
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
 
@@ -719,6 +802,17 @@ def regression_lineaire_wins(victory_: list, points_: list):
     print(f"Score R² du modèle : {score:.4f}")
     x_range = np.linspace(min(victory_), max(victory_), 100).reshape(-1, 1)
     y_pred = model.predict(x_range)
+
+
+    #on ajoute le graphe au dossier#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
+    #Ici on nomme le premier graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"reg_lineaire_wins_{horodatage}.png"
+
     plt.figure(figsize=(8, 6))
     plt.scatter(
         victory_,
@@ -736,11 +830,16 @@ def regression_lineaire_wins(victory_: list, points_: list):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.legend()
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
     # Calcul des résidus
     y_pred = model.predict(victory_)
     residuals = points_ - y_pred
+
+    #Ici on nomme le deuxième graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"QQplot_wins_{horodatage}.png"
 
     # QQ plot des résidus pour tester la normalité
     plt.figure(figsize=(6, 6))
@@ -748,7 +847,13 @@ def regression_lineaire_wins(victory_: list, points_: list):
     plt.title("QQ Plot des résidus", fontsize=14, fontweight="bold")
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
+
+
+    #Ici on nomme le troisème graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"Residus_wins_{horodatage}.png"
 
     # Visualisation des résidus vs valeurs prédites
     plt.scatter(y_pred, residuals, alpha=0.7)
@@ -758,7 +863,12 @@ def regression_lineaire_wins(victory_: list, points_: list):
     plt.title("Résidus vs. valeurs prédites")
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
+
+    #Ici on nomme le dernier graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"hist_residus_wins_{horodatage}.png"
 
     # Histogramme des résidus pour vérifier leur distribution
     plt.hist(residuals, bins=15, edgecolor="black", alpha=0.7)
@@ -767,6 +877,7 @@ def regression_lineaire_wins(victory_: list, points_: list):
     plt.ylabel("Fréquence")
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
 
@@ -785,6 +896,11 @@ def regression_lineaire_pitstops(pit_stop_: list, points_: list):
     from scipy import stats
     from sklearn.linear_model import LinearRegression
 
+    #on ajoute le graphe au dossier#
+    desktop = Path.home() / "Desktop"
+    dossier_resultat = desktop / "résultat"
+    dossier_resultat.mkdir(exist_ok=True)
+
     pit_stop_ = np.array(pit_stop_).reshape(-1, 1)
     model = LinearRegression()
     model.fit(pit_stop_, points_)
@@ -794,6 +910,11 @@ def regression_lineaire_pitstops(pit_stop_: list, points_: list):
     print(f"Score R² du modèle : {score:.4f}")
     x_range = np.linspace(min(pit_stop_), max(pit_stop_), 100).reshape(-1, 1)
     y_pred = model.predict(x_range)
+
+    #Ici on nomme le premier graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"reg_lineaire_pit_stops_{horodatage}.png"
+
     plt.figure(figsize=(8, 6))
     plt.scatter(
         pit_stop_,
@@ -811,11 +932,17 @@ def regression_lineaire_pitstops(pit_stop_: list, points_: list):
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.legend()
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
 
     # Calcul des résidus
     y_pred = model.predict(pit_stop_)
     residuals = points_ - y_pred
+
+
+    #Ici on nomme le deuxième graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"QQplot_wins_{horodatage}.png"
 
     # QQ plot des résidus pour tester la normalité
     plt.figure(figsize=(6, 6))
@@ -823,7 +950,12 @@ def regression_lineaire_pitstops(pit_stop_: list, points_: list):
     plt.title("QQ Plot des résidus", fontsize=14, fontweight="bold")
     plt.grid(True, linestyle="--", alpha=0.5)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
+
+    #Ici on nomme le troisème graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"Residus_pit_stops_{horodatage}.png" 
 
     # Visualisation des résidus vs valeurs prédites
     plt.scatter(y_pred, residuals, alpha=0.7)
@@ -833,7 +965,13 @@ def regression_lineaire_pitstops(pit_stop_: list, points_: list):
     plt.title("Résidus vs. valeurs prédites")
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
+
+
+    #Ici on nomme le dernier graphe #
+    horodatage = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    nom_fichier = dossier_resultat / f"hist_residus_pit_stops_{horodatage}.png"
 
     # Histogramme des résidus pour vérifier leur distribution
     plt.hist(residuals, bins=15, edgecolor="black", alpha=0.7)
@@ -842,4 +980,5 @@ def regression_lineaire_pitstops(pit_stop_: list, points_: list):
     plt.ylabel("Fréquence")
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(nom_fichier)
     plt.show()
