@@ -119,7 +119,7 @@ def max_point_construct_annee():
     return max_points_par_annee
 
 
-def reponseQ2():
+def reponseQ5():
     """
     cette méthode renvoit le classement des écurie selon le nombre de saisons
     qu'elles ont remporté, sous la forme d'une table
@@ -204,18 +204,22 @@ def select_element(l: list, indices: list):
     return liste
 
 
-def points_courses():
+def points_courses(path):
     """
     Liste des points accordés à chaque écurie pour chaque course
+    Parameter:
+    ----------
+    path
+        chemin d'accès vers la table constructor_results
+
     Return
     ------
     list
         liste qui rencense les points pour chaque course
     """
     L = Liste_constructor(
-        "/Users/gabriels./Desktop/donnees_formule_un/constructor_results.csv"
+        f'{path}'
     )
-    L = select_element(L, [1, 2, 3])
     Liste_course_inter = []
     Liste_course = []
     for i in range(len(L) - 1):
@@ -230,16 +234,25 @@ def points_courses():
     return Liste_course
 
 
-def participants_courses():
+def participants_courses(path):
     """
     Condense les écuries pour une course donnée
+    Parameters
+    ----------
+    path : str
+        chemin d'accès à la table constructor_results
     Return
     ------
     list
         liste qui rencense les écuries pour une course donnée
     """
+
     Liste_course_inter = []
     Liste_course = []
+    L = Liste_constructor(
+        f'{path}'
+    )
+    L = select_element(L, [1, 2, 3])
     for i in range(len(L) - 1):
         Liste_course_inter.append(L[i][1])
         if L[i][0] != L[i + 1][0]:
@@ -308,17 +321,23 @@ def supp_in_list(l: list, v: int):
     return l
 
 
-def gagnants():
+def gagnants(path):
     """
     Renvoie la liste des gagnants de chaque course
+    Parameter
+    ---------
+    path: str
+        chemin d'accès vers la table constructorId
+
+    Return
     ------
     list
         liste du gagnant pour chaque course
     """
     # supprime les courses avec un seul participant
 
-    points = supp_in_list(points_courses(), 1)
-    participants = supp_in_list(participants_courses(), 1)  # idem
+    points = supp_in_list(points_courses(path), 1)
+    participants = supp_in_list(participants_courses(path), 1)  # idem
     gagnants = []
     for i in range(len(points)):
         if len(points[i]) != len(participants[i]):
@@ -333,9 +352,13 @@ def gagnants():
     return gagnants
 
 
-def classement_id():
+def classement_id(path):
     """
     Classement des id des écuries selon le nombre de victoires cumulées
+    Parameter:
+    ----------
+    path: str
+        chemin d'accès vers constructor_results
 
     Return
     ------
@@ -343,7 +366,7 @@ def classement_id():
         liste par ordre décroissant des écuries avec leur nombre de victoire associé
 
     """
-    winner = gagnants()
+    winner = gagnants(path)
     classement = []
     unique = []
     for ecurie in winner:
@@ -358,19 +381,27 @@ def classement_id():
     return classement
 
 
-def classement_nom():
+def classement_nom(path1, path2):
     """
     Renvoie le classement des écuries selon le nombre de victoires cumulées
+
+    Parameters:
+    -----------
+    path1: str
+        chemin d'accès vers constructor_results
+    path2: str
+        chemin d'accès vers constructor
+
     Return
     ------
     list
         liste par ordre décroissant des écuries avec leur nombre de victoire associé
     """
     noms = Liste_constructor(
-        "/Users/gabriels./Desktop/donnees_formule_un/constructors.csv"
+        path2
     )
     noms = select_element(noms, [0, 2])
-    classement = classement_id()
+    classement = classement_id(path1)
     unique = []
     for couple in noms:
         if couple not in unique:
