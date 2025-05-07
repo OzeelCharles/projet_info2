@@ -10,11 +10,11 @@ Les analyses incluent notamment :
 - **Q2** : Comment comparer deux pilotes selons leurs résultats de courses ?
 - **Q3** : Comment se répartie le temps d'arrêt au stand des pilotes dont on possède les données ?
 - **Q4** : Quelle est l'écurie qui a remporté le plus de victoires cumulées? Faire un classement (Avec pandas et en python-base)
-- **Q5** : Quelle est l'écurie qui a remporté le plus de saisons ? Faire un classement 
-- **Q6** : 
-- **Q7** : 
-- **Q9** : 
-- **Q10** : 
+- **Q5** : Quelle est l'écurie qui a remporté le plus de saisons ? Faire un classement
+- **Q6** :
+- **Q7** :
+- **Q9** :
+- **Q10** :
 
 
 Ce projet utilise principalement `pandas`, `numpy`, `matplotlib`, `scikit-learn` et `geopandas`, et s’exécute dans un environnement Jupyter Notebook ou VSCode.
@@ -31,16 +31,17 @@ Ce projet utilise principalement `pandas`, `numpy`, `matplotlib`, `scikit-learn`
 - [Architecture](#architecture)
 - [Contributeurs](#contributeurs)
 - [Licence](#licence)
+- [notes questions](#notes-questions)
 
 ---
 
-## 🧐 Contexte
+
 
 ## 🏎️ Contexte
 
 La Formule 1 est l'une des disciplines sportives les plus médiatisées au monde et l'une des plus exigente. Chaque saison, des dizaines de courses sont organisées à travers le globe, mettant en compétition les meilleurs pilotes et les écuries les plus prestigieuses. Mais au-delà du spectacle, la F1 est aussi une incroyable source de données. Résultats de courses, temps au tour, positions sur la grille, vitesses moyennes, performances en qualifications, stratégies d’arrêts aux stands, conditions météorologiques, abandons... la richesse et la variété des données disponibles sont immenses.
 
-Toutefois, cette abondance d'informations présente aussi un défi : comment structurer, filtrer et analyser efficacement ces données pour en extraire du sens ? Les données sont hétérogènes (numériques, catégorielles, géospatiales, temporelles), avec du bruit, incomplètes. 
+Toutefois, cette abondance d'informations présente aussi un défi : comment structurer, filtrer et analyser efficacement ces données pour en extraire du sens ? Les données sont hétérogènes (numériques, catégorielles, géospatiales, temporelles), avec du bruit, incomplètes.
 
 L’objectif de ce projet est justement d’apporter de la clarté dans cet pagaille. En répondant à une série de questions analytiques, nous cherchons à départager les pilotes, comprendre les dynamiques entre saisons, identifier les facteurs de performance et tenter de découvrir les variables qui pourraient permettre de prédire de futures victoires. La complexité du sport, mêlant performances humaines, techniques, aléas, rend cette tâche aussi fascinante que difficile — mais elle ouvre également la porte à une exploration analytique passionnante.
 
@@ -54,7 +55,7 @@ Listez les principales fonctionnalités du projet :
 - ✅ Estimation du nombre de points par nombre de victoire
 - ✅ Estimation du nombre de points par durée moyen au stand
 - ✅ statitique moyenne du temps passé au stand par joueur
-- ✅ Nombre de points sur toute la carrière du pilote 
+- ✅ Nombre de points sur toute la carrière du pilote
 - ✅ Nombre de victoires sur toute la carrière du pilote
 - ✅ Visualisaiton sur une des positions des circuits de grand prix
 - ✅ taux de victoire total par pilote
@@ -78,22 +79,24 @@ Ces données sont sous forme de fichiers CSV.
 
 - Le fichier **`naturalearth_lowres`** provient des **données intégrées à la bibliothèque [GeoPandas](https://geopandas.org/en/stable/docs/reference/api/geopandas.datasets.get_path.html)**. Il s’agit d’un jeu de données géographiques mondial en basse résolution, fourni par le projet [Natural Earth](https://www.naturalearthdata.com/), utilisé ici pour afficher les cartes de fond dans les visualisations spatiales.
 
---- 
+---
 
 ## 🛠 Technologies utilisées
 
-- **Langage principal** : Python 3.11  
+- **Langage principal** : Python 3.11
 - **Bibliothèques** :
-  - `pandas` – manipulation de données  
-  - `numpy` – calcul numérique  
-  - `matplotlib` – visualisation  
-  - `scikit-learn` – machine learning  
-  - `geopandas` – traitement et visualisation de données géospatiales  
-- **Environnement** : Jupyter Notebook / VSCode  
+  - `pandas` – manipulation de données
+  - `numpy` – calcul numérique
+  - `matplotlib` – visualisation
+  - `scikit-learn` – machine learning
+  - `geopandas` – traitement et visualisation de données géospatiales
+- **Environnement** : Jupyter Notebook / VSCode
 
 ---
 
 ## ⚙️ Installation
+
+
 
 ```bash
 # Cloner le projet
@@ -102,16 +105,24 @@ git clone https://github.com/OzeelCharles/projet_info2.git
 # Aller dans le dossier
 #depuis windows:
 C:\Users\nom_utilisateur\Desktop\projet_info2
-#depuis macOS ou Linux: 
+#depuis macOS ou Linux:
 /home/nom_utilisateur/Desktop/projet_info2
 
 #Avant d'exécuter ce projet, assurez-vous d'avoir installé les dépendances nécessaires. C'est à dire avoir sur votre bureau donnees_formule_un, d'avoir sur le même dépot que le fichier jupyter_final.ipynb, le fichier naturalearth_lowres, et f1_grands_prix_localisation.ipynb
 
-pip install -r requirements.txt
 
+
+
+pip install -r requirements.txt
+```
+
+## notes questions:
+
+Q4- version python: la fonction classement_nom doit prendre en argument les chemins d'accès à
+constructor_results et constructor, qui sont chargée localement avec src
 ## 👥 Auteurs
 
-- Charles OZEEL – interface GIT, Module Charles.py, README.md, Notebook_final.ipyn(introduction, Q1, Q2, Q3, reg linéaire entre win et points, pit_stop et points)– [@Lachance#233020](https://github.com/OzeelCharles)
+- Charles OZEEL – interface GIT, Module Charles.py, README.md, Notebook_final.ipynb(introduction, Q1, Q2, Q3, reg linéaire entre win et points, pit_stop et points)– [@Lachance#233020](https://github.com/OzeelCharles)
 - Jules – – []()
 - Lilian - -[]()
-- Gabriel - -[]()
+- Gabriel - Module Gabriel.py, Notebook_final.ipynb(Q4, Q4 version python-base, Q5) -[@Gstrems](https://github.com/Gstrems)
